@@ -5,6 +5,7 @@ import zipfile
 import streamlit.components.v1 as components
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
+from pypdf.generic import NameObject
 
 # ================= KONFIGURASI HALAMAN =================
 st.set_page_config(
@@ -35,7 +36,7 @@ st.markdown("""
         max-width: 680px;
     }
 
-    /* IKON HAMBURGER */
+    /* TOMBOL HAMBURGER */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
@@ -99,7 +100,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* METRIK */
+    /* KARTU METRIK STATISTIK */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -112,6 +113,7 @@ st.markdown("""
         border-radius: 14px;
         padding: 12px 6px;
         text-align: center;
+        transition: all 0.2s ease;
     }
     .metric-card.highlight {
         background: #EFF6FF;
@@ -156,7 +158,7 @@ st.markdown("""
         margin: 1rem 0;
     }
 
-    /* TOMBOL DOWNLOAD */
+    /* TOMBOL DOWNLOAD PRO */
     [data-testid="stDownloadButton"] {
         margin-top: 10px;
         margin-bottom: 12px;
@@ -185,7 +187,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ================= HELPER UKURAN FILE =================
+# ================= HELPER FUNCTIONS =================
 def format_size(size_in_bytes):
     if size_in_bytes < 1024:
         return f"{size_in_bytes} B"
@@ -196,8 +198,8 @@ def format_size(size_in_bytes):
 
 def show_download_loading_bar(file_type="berkas"):
     loading_box = st.empty()
-    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan {file_type}...")
-    for pct, msg in [(30, "📦 Memadatkan berkas..."), (70, "⚡ Mengoptimalkan ukuran..."), (100, "✅ Selesai!")]:
+    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan unduhan {file_type}...")
+    for pct, msg in [(30, "📦 Memadatkan berkas..."), (75, "⚡ Mengemas hasil kompresi..."), (100, "✅ Berkas siap!")]:
         time.sleep(0.06)
         prog_bar.progress(pct, text=msg)
     time.sleep(0.15)
@@ -227,7 +229,7 @@ if st.session_state.close_sidebar_trigger:
         </script>
     """, height=0, width=0)
 
-# ================= SIDEBAR =================
+# ================= MENU SIDEBAR =================
 with st.sidebar:
     st.markdown("<h2 style='font-weight:800; color:#0F172A; margin-top:0;'>⚡ Menu Pilihan</h2>", unsafe_allow_html=True)
     st.write("")
@@ -246,7 +248,7 @@ with st.sidebar:
             st.session_state.close_sidebar_trigger = True
             st.rerun()
 
-# ================= HEADER =================
+# ================= HEADER UTAMA =================
 st.markdown(f"""
 <div class="brand-header">
     <h1 class="brand-title">⚡ CompressPro</h1>
@@ -255,19 +257,17 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# ================= ENGINE KOMPRESI OFFICE (DIPERBAIKI) =================
+# ================= REALTIME ENGINE: OFFICE =================
 def compress_office_file(file_bytes, quality_slider=70):
     bytes_asli = len(file_bytes)
     in_buf = io.BytesIO(file_bytes)
     out_buf = io.BytesIO()
     media_count = 0
     
-    # Skala resolusi gambar mengikuti slider
-    scale_factor = max(0.2, min(1.0, quality_slider / 100.0))
-    target_q = max(20, min(85, quality_slider))
-    
-    # Kompresi struktur XML: selalu gunakan level 9 untuk memeras ukuran maksimal
-    zip_level = 9 if quality_slider <= 70 else 6
+    # Skala resolusi langsung terikat linier dengan slider (seperti kompresi gambar)
+    scale_factor = max(0.15, min(1.0, quality_slider / 100.0))
+    target_q = max(15, min(90, quality_slider))
+    zip_level = 9 if quality_slider <= 75 else 6
     
     with zipfile.ZipFile(in_buf, 'r') as in_zip:
         with zipfile.ZipFile(out_buf, 'w') as out_zip:
@@ -284,7 +284,7 @@ def compress_office_file(file_bytes, quality_slider=70):
                         img = Image.open(io.BytesIO(content))
                         img_buf = io.BytesIO()
                         
-                        # Turunkan dimensi piksel
+                        # Downscale dimensi piksel secara nyata
                         new_w = max(1, int(img.width * scale_factor))
                         new_h = max(1, int(img.height * scale_factor))
                         img_resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -293,26 +293,21 @@ def compress_office_file(file_bytes, quality_slider=70):
                             if img_resized.mode in ("RGBA", "P"):
                                 img_resized = img_resized.convert("RGB")
                             img_resized.save(img_buf, format="JPEG", quality=target_q, optimize=True)
-                            compressed = img_buf.getvalue()
-                            if len(compressed) < len(content):
-                                content = compressed
-                                
+                            content = img_buf.getvalue()
+                            
                         elif fname_lower.endswith('.png'):
-                            # Kompresi PNG dengan Palette Quantization (pangkas ukuran 60-80%)
-                            num_colors = max(32, min(256, int(256 * scale_factor)))
+                            # Palette Quantization dinamis sesuai slider
+                            num_colors = max(16, min(256, int(256 * scale_factor)))
                             if img_resized.mode != "RGBA":
                                 img_p = img_resized.convert("RGB").convert("P", palette=Image.Palette.ADAPTIVE, colors=num_colors)
                             else:
                                 img_p = img_resized.quantize(colors=num_colors, method=Image.Quantize.MEDIANCUT)
                             
                             img_p.save(img_buf, format="PNG", optimize=True, compress_level=9)
-                            compressed = img_buf.getvalue()
-                            if len(compressed) < len(content):
-                                content = compressed
+                            content = img_buf.getvalue()
                     except Exception:
                         pass
                 
-                # Tulis kembali dengan Deflate Level yang dipaksa aktif
                 zinfo = zipfile.ZipInfo(item.filename)
                 zinfo.date_time = item.date_time
                 zinfo.compress_type = zipfile.ZIP_DEFLATED
@@ -320,13 +315,14 @@ def compress_office_file(file_bytes, quality_slider=70):
                 
     hasil_bytes = out_buf.getvalue()
     
-    # Proteksi: tidak boleh melebihi file awal
-    if len(hasil_bytes) >= bytes_asli:
-        return file_bytes, media_count
+    # Jamin hasil tidak melebihi file asli
+    if len(hasil_bytes) > bytes_asli:
+        hasil_bytes = file_bytes
+        
     return hasil_bytes, media_count
 
 
-# ================= ENGINE KOMPRESI PDF (DIPERBAIKI) =================
+# ================= REALTIME ENGINE: PDF =================
 def compress_pdf_file(file_bytes, quality_slider=70):
     bytes_asli = len(file_bytes)
     in_buf = io.BytesIO(file_bytes)
@@ -342,27 +338,33 @@ def compress_pdf_file(file_bytes, quality_slider=70):
     except Exception:
         pass
 
-    scale_factor = max(0.25, min(0.85, quality_slider / 100.0))
-    target_q = max(20, min(80, quality_slider))
+    # Skala resolusi langsung terikat linier dengan slider (seperti gambar)
+    scale_factor = max(0.2, min(0.95, quality_slider / 100.0))
+    target_q = max(15, min(85, quality_slider))
+    deflate_lvl = 9 if quality_slider <= 70 else 6
     
     image_count = 0
     for page in writer.pages:
+        # Kompres konten teks & stream dokumen
         try:
-            page.compress_content_streams(level=9)
+            page.compress_content_streams(level=deflate_lvl)
         except Exception:
             pass
             
+        # Pindai dan kompres semua gambar internal di setiap halaman PDF
         try:
             for img in page.images:
                 image_count += 1
                 try:
                     pil_img = img.image
+                    
+                    # 1. Kecilkan resolusi gambar mengikuti slider
                     new_w = max(1, int(pil_img.width * scale_factor))
                     new_h = max(1, int(pil_img.height * scale_factor))
-                    
                     if new_w < pil_img.width or new_h < pil_img.height:
                         pil_img = pil_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
                         
+                    # 2. Normalisasi format gambar
                     if pil_img.mode in ("RGBA", "LA", "P"):
                         bg = Image.new("RGB", pil_img.size, (255, 255, 255))
                         if pil_img.mode in ("RGBA", "LA"):
@@ -372,7 +374,8 @@ def compress_pdf_file(file_bytes, quality_slider=70):
                         pil_img = bg
                     elif pil_img.mode != "RGB":
                         pil_img = pil_img.convert("RGB")
-                        
+                    
+                    # 3. Ganti gambar dengan versi terkompresi baru
                     img.replace(pil_img, quality=target_q)
                 except Exception:
                     pass
@@ -388,9 +391,10 @@ def compress_pdf_file(file_bytes, quality_slider=70):
     writer.write(out_buf)
     hasil_bytes = out_buf.getvalue()
     
-    # Proteksi: tidak boleh melebihi file awal
-    if len(hasil_bytes) >= bytes_asli:
-        return file_bytes, total_pages, image_count
+    # Jamin hasil tidak melebihi file asli
+    if len(hasil_bytes) > bytes_asli:
+        hasil_bytes = file_bytes
+        
     return hasil_bytes, total_pages, image_count
 
 
@@ -409,7 +413,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         with col2:
             scale = st.slider("Skala Resolusi (%)", 10, 100, 100)
 
-        # Proses kompresi
+        # Logika pemrosesan real-time
         new_w = max(1, int(img_original.width * (scale / 100)))
         new_h = max(1, int(img_original.height * (scale / 100)))
         img_proses = img_original.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -428,7 +432,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         img_proses.save(out_img, format="JPEG", quality=quality, optimize=True)
         res_img_bytes = out_img.getvalue()
         
-        # Proteksi agar ukuran tidak membengkak di atas file asli
         if len(res_img_bytes) > bytes_awal and scale == 100:
             res_img_bytes = raw_bytes_awal
             
@@ -482,15 +485,15 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
             "Tingkat Kualitas & Kompresi PDF (%)", 
             min_value=10, 
             max_value=90, 
-            value=50,
-            help="Geser ke kiri untuk mengecilkan dokumen."
+            value=60,
+            help="Geser ke kiri untuk memperkecil ukuran file secara maksimal."
         )
         
         try:
+            # Memproses kompresi secara real-time seperti gambar
             res_pdf_bytes, total_pages, total_img = compress_pdf_file(file_pdf.getvalue(), quality_slider=pdf_q)
             bytes_akhir_pdf = len(res_pdf_bytes)
             
-            # Hitung persentase hemat secara presisi
             if bytes_awal_pdf > bytes_akhir_pdf:
                 hemat_pdf = ((bytes_awal_pdf - bytes_akhir_pdf) / bytes_awal_pdf) * 100
             else:
@@ -518,8 +521,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
             if total_img == 0:
                 st.markdown("""
                 <div class="info-tip">
-                    ℹ️ <b>Hasil Deteksi: 0 Gambar Ditemukan.</b><br>
-                    Dokumen ini 100% tersusun atas teks vektor dan font sistem. Berkas PDF berbasis teks murni sudah berada dalam batas kompresi terpadat dan tidak dapat diperkecil secara drastis tanpa menghapus teks.
+                    ℹ️ <b>PDF Berbasis Vektor:</b> Dokumen ini tidak memuat elemen foto/gambar (murni teks & font sistem). Penurunan ukuran berasal dari pemadatan teks stream & pembersihan objek sampah.
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -550,10 +552,11 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
             "Tingkat Kualitas & Kompresi Dokumen (%)", 
             min_value=10, 
             max_value=90, 
-            value=50, 
-            help="10% = Kompresi maksimal (ukuran paling kecil)."
+            value=60, 
+            help="Geser ke kiri untuk memperkecil ukuran media & dokumen secara maksimal."
         )
         
+        # Memproses kompresi secara real-time seperti gambar
         res_off_bytes, jumlah_media = compress_office_file(file_office.getvalue(), quality_slider=comp_level)
         bytes_akhir_off = len(res_off_bytes)
         
@@ -586,7 +589,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if jumlah_media == 0:
             st.markdown("""
             <div class="info-tip">
-                ℹ️ <b>Dokumen Teks Murni:</b> Berkas ini tidak memuat elemen foto/gambar. Penghematan ukuran dioptimalkan melalui pemadatan struktur XML dokumen (Level 9).
+                ℹ️ <b>Dokumen Teks Murni:</b> Berkas ini tidak memuat foto/gambar. Penghematan ukuran dioptimalkan melalui pemadatan struktur XML dokumen secara maksimal (Level 9).
             </div>
             """, unsafe_allow_html=True)
         
