@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (WARNA SENADA, MODERN & RESPONSIF) =================
+# ================= CUSTOM CSS (RESPONSIF, FLOATING LOADER READY) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -30,7 +30,7 @@ st.markdown("""
         border: none !important;
     }
 
-    /* Sembunyikan elemen bawaan Streamlit yang tidak diperlukan */
+    /* Sembunyikan tombol bawaan Streamlit yang tidak diperlukan */
     [data-testid="stToolbarActions"],
     [data-testid="stStatusWidget"],
     .stDeployButton,
@@ -216,7 +216,7 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 5. METRIK TOTAL */
+    /* 5. KARTU METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -305,21 +305,6 @@ st.markdown("""
         transform: translateY(-1px) !important;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.45) !important;
     }
-
-    /* 8. PROGRESS BAR DENGAN WARNA SENADA (CYBER GRADIENT) */
-    [data-testid="stProgress"] > div > div > div > div {
-        background: linear-gradient(90deg, #0284C7 0%, #6366F1 50%, #EC4899 100%) !important;
-        border-radius: 999px !important;
-    }
-    [data-testid="stProgress"] > div > div {
-        background-color: rgba(99, 102, 241, 0.12) !important;
-        border-radius: 999px !important;
-    }
-    [data-testid="stProgress"] p {
-        font-weight: 700 !important;
-        color: #4F46E5 !important;
-        font-size: 0.84rem !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -334,26 +319,63 @@ def format_size(size_in_bytes):
     return f"{kb:.2f} KB"
 
 
-# ================= VISUAL LOADING BAR SENADA & NOTIFIKASI =================
+# ================= VISUAL LOADING MELAYANG (FLOATING HUD) =================
 def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
+    """Menampilkan progress bar melayang di atas layar dengan jeda ~2.5 detik"""
     loading_box = st.empty()
     nama_label = "Bundle ZIP" if is_bundle else (f"'{file_name}'" if file_name else "Berkas")
     
+    # 5 Tahapan proses dengan total durasi ~2.5 detik agar terlihat keren
     stages = [
-        (25, f"⚡ Menyiapkan {nama_label}..."),
-        (60, f"📦 Memadatkan & mengemas data..."),
-        (90, f"🚀 Mentransfer ke perangkat..."),
-        (100, f"✅ Berhasil disiapkan!")
+        (18, f"⚡ Menginisialisasi transfer {nama_label}...", 0.4),
+        (42, "📦 Memadatkan aliran data berkas...", 0.5),
+        (72, "⚡ Mengoptimalkan paket kompresi...", 0.6),
+        (92, "🚀 Menyinkronkan unduhan ke perangkat...", 0.5),
+        (100, "✅ Selesai! Berkas siap diunduh...", 0.45)
     ]
     
-    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan {nama_label}...")
-    for pct, msg in stages:
-        time.sleep(0.05)
-        prog_bar.progress(pct, text=msg)
-    time.sleep(0.15)
+    for pct, msg, delay in stages:
+        floating_html = f"""
+        <div style="
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999999;
+            width: min(90vw, 440px);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1.5px solid rgba(99, 102, 241, 0.5);
+            border-radius: 18px;
+            padding: 14px 20px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(99, 102, 241, 0.35);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            pointer-events: none;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 10px; height: 10px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></span>
+                    <span style="color: #F8FAFC; font-weight: 800; font-size: 0.88rem; letter-spacing: 0.5px;">MEMPROSES UNDUHAN</span>
+                </div>
+                <span style="color: #EC4899; font-weight: 800; font-size: 0.9rem;">{pct}%</span>
+            </div>
+            
+            <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 99px; overflow: hidden; margin-bottom: 9px;">
+                <div style="width: {pct}%; height: 100%; background: linear-gradient(90deg, #0284C7 0%, #6366F1 50%, #EC4899 100%); border-radius: 99px; transition: width 0.35s ease;"></div>
+            </div>
+            
+            <div style="color: #94A3B8; font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {msg}
+            </div>
+        </div>
+        """
+        loading_box.markdown(floating_html, unsafe_allow_html=True)
+        time.sleep(delay)
+        
     loading_box.empty()
     
-    # Notifikasi presisi sesuai permintaan pengguna
+    # Notifikasi spesifik sesuai permintaan
     if kategori == "gambar":
         teks_notif = "Gambar berhasil diunduh"
     elif kategori in ("pdf", "office"):
@@ -361,8 +383,7 @@ def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
     else:
         teks_notif = "File berhasil diunduh"
         
-    pesan_final = f"🎉 {teks_notif}!"
-    st.toast(pesan_final, icon="✅")
+    st.toast(f"🎉 {teks_notif}!", icon="✅")
 
 
 # ================= STATE NAVIGASI =================
@@ -649,7 +670,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
-        # Tombol Download ZIP
+        # Tombol Download ZIP (Dengan Loading Melayang)
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -661,7 +682,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading(kategori="gambar", is_bundle=True)
 
-        # Rincian Unduh Satuan
+        # Rincian Unduh Satuan (Dengan Loading Melayang)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -749,6 +770,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_pdf = zip_buf_pdf.getvalue()
 
+        # Tombol Download ZIP (Dengan Loading Melayang)
         btn_zip_pdf = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes_pdf))})",
             data=zip_bytes_pdf,
@@ -760,6 +782,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading(kategori="pdf", is_bundle=True)
 
+        # Rincian Unduh Satuan (Dengan Loading Melayang)
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -846,6 +869,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_off = zip_buf_off.getvalue()
 
+        # Tombol Download ZIP (Dengan Loading Melayang)
         btn_zip_off = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_off)} DOKUMEN) - ZIP ({format_size(len(zip_bytes_off))})",
             data=zip_bytes_off,
@@ -857,6 +881,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading(kategori="office", is_bundle=True)
 
+        # Rincian Unduh Satuan (Dengan Loading Melayang)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
