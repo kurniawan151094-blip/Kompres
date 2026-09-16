@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (RESPONSIF, MODERN & TOMBOL DOWNLOAD KEREN) =================
+# ================= CUSTOM CSS =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -23,7 +23,6 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* 1. HILANGKAN JARAK KOSONG DI ATAS */
     header[data-testid="stHeader"] {
         background: transparent !important;
         height: 0px !important;
@@ -36,7 +35,7 @@ st.markdown("""
         max-width: 680px;
     }
 
-    /* 2. IKON HAMBURGER BESAR & MENCOLOK */
+    /* IKON HAMBURGER */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
@@ -68,7 +67,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. TOMBOL SIDEBAR */
+    /* TOMBOL SIDEBAR */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -79,7 +78,7 @@ st.markdown("""
         justify-content: flex-start !important;
     }
 
-    /* 4. HEADER */
+    /* HEADER */
     .brand-header {
         text-align: center;
         margin-top: 0.2rem;
@@ -100,7 +99,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 5. KARTU METRIK STATISTIK */
+    /* METRIK */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -113,7 +112,6 @@ st.markdown("""
         border-radius: 14px;
         padding: 12px 6px;
         text-align: center;
-        transition: transform 0.2s ease;
     }
     .metric-card.highlight {
         background: #EFF6FF;
@@ -147,7 +145,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 6. KOTAK TIP */
+    /* KOTAK TIP */
     .info-tip {
         background: #F8FAFC;
         border-left: 4px solid #3B82F6;
@@ -158,7 +156,7 @@ st.markdown("""
         margin: 1rem 0;
     }
 
-    /* 7. TOMBOL DOWNLOAD MENCOLOK & KEREN (PRO STYLE) */
+    /* TOMBOL DOWNLOAD */
     [data-testid="stDownloadButton"] {
         margin-top: 10px;
         margin-bottom: 12px;
@@ -172,27 +170,22 @@ st.markdown("""
         border-radius: 14px !important;
         border: none !important;
         box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45) !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: all 0.3s ease !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         letter-spacing: 0.3px;
     }
     [data-testid="stDownloadButton"] > button:hover {
-        transform: translateY(-3px) scale(1.01) !important;
+        transform: translateY(-2px) !important;
         box-shadow: 0 10px 28px rgba(124, 58, 237, 0.55) !important;
-        background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #6D28D9 100%) !important;
         color: #FFFFFF !important;
-    }
-    [data-testid="stDownloadButton"] > button:active {
-        transform: translateY(1px) scale(0.99) !important;
-        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.4) !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ================= HELPER FUNCTIONS =================
+# ================= HELPER UKURAN FILE =================
 def format_size(size_in_bytes):
     if size_in_bytes < 1024:
         return f"{size_in_bytes} B"
@@ -202,59 +195,39 @@ def format_size(size_in_bytes):
     return f"{kb:.2f} KB"
 
 def show_download_loading_bar(file_type="berkas"):
-    """Menampilkan loading bar animasi saat tombol unduh diklik"""
     loading_box = st.empty()
-    prog_bar = loading_box.progress(0, text=f"⚡ Memproses & mengunduh {file_type}...")
-    
-    stages = [
-        (25, f"📦 Mengemas struktur data {file_type}..."),
-        (60, f"⚡ Mengoptimalkan kompresi..."),
-        (90, f"🚀 Menyiapkan unduhan ke perangkat..."),
-        (100, f"✅ Selesai! Berkas terkirim.")
-    ]
-    for pct, msg in stages:
-        time.sleep(0.08)
+    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan {file_type}...")
+    for pct, msg in [(30, "📦 Memadatkan berkas..."), (70, "⚡ Mengoptimalkan ukuran..."), (100, "✅ Selesai!")]:
+        time.sleep(0.06)
         prog_bar.progress(pct, text=msg)
-        
-    time.sleep(0.2)
+    time.sleep(0.15)
     loading_box.empty()
     st.toast(f"🎉 Berkas {file_type} berhasil diunduh!", icon="📥")
 
 
-# ================= INISIALISASI STATE =================
+# ================= STATE NAVIGASI =================
 if "active_menu" not in st.session_state:
     st.session_state.active_menu = "🖼️ Kompres Gambar"
 
 if "close_sidebar_trigger" not in st.session_state:
     st.session_state.close_sidebar_trigger = False
 
-# ================= SKRIP PENUTUP SIDEBAR OTOMATIS =================
 if st.session_state.close_sidebar_trigger:
     st.session_state.close_sidebar_trigger = False
     components.html(f"""
         <script>
-            // Timestamp: {time.time()}
             setTimeout(function() {{
                 try {{
                     const parentDoc = window.parent.document;
                     const closeBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
-                                     parentDoc.querySelector('button[aria-label="Close sidebar"]') ||
-                                     parentDoc.querySelector('[data-testid="stSidebarCollapseButton"]');
-                    if (closeBtn) {{
-                        closeBtn.click();
-                    }} else {{
-                        const backdrop = parentDoc.querySelector('[data-testid="stSidebarBackdrop"]');
-                        if (backdrop) backdrop.click();
-                    }}
-                }} catch (e) {{
-                    console.log(e);
-                }}
+                                     parentDoc.querySelector('button[aria-label="Close sidebar"]');
+                    if (closeBtn) closeBtn.click();
+                }} catch (e) {{}}
             }}, 50);
         </script>
     """, height=0, width=0)
 
-
-# ================= MENU SIDEBAR =================
+# ================= SIDEBAR =================
 with st.sidebar:
     st.markdown("<h2 style='font-weight:800; color:#0F172A; margin-top:0;'>⚡ Menu Pilihan</h2>", unsafe_allow_html=True)
     st.write("")
@@ -268,13 +241,12 @@ with st.sidebar:
     for label, key_btn in daftar_menu:
         is_active = (st.session_state.active_menu == label)
         tipe_tombol = "primary" if is_active else "secondary"
-        
         if st.button(label, key=key_btn, use_container_width=True, type=tipe_tombol):
             st.session_state.active_menu = label
             st.session_state.close_sidebar_trigger = True
             st.rerun()
 
-# ================= HEADER UTAMA =================
+# ================= HEADER =================
 st.markdown(f"""
 <div class="brand-header">
     <h1 class="brand-title">⚡ CompressPro</h1>
@@ -283,15 +255,19 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# ================= ENGINE KOMPRESI OFFICE =================
+# ================= ENGINE KOMPRESI OFFICE (DIPERBAIKI) =================
 def compress_office_file(file_bytes, quality_slider=70):
+    bytes_asli = len(file_bytes)
     in_buf = io.BytesIO(file_bytes)
     out_buf = io.BytesIO()
     media_count = 0
     
-    # 10% -> kompresi maksimal (level 9), 95% -> kompresi ringan (level 1)
-    zip_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
+    # Skala resolusi gambar mengikuti slider
     scale_factor = max(0.2, min(1.0, quality_slider / 100.0))
+    target_q = max(20, min(85, quality_slider))
+    
+    # Kompresi struktur XML: selalu gunakan level 9 untuk memeras ukuran maksimal
+    zip_level = 9 if quality_slider <= 70 else 6
     
     with zipfile.ZipFile(in_buf, 'r') as in_zip:
         with zipfile.ZipFile(out_buf, 'w') as out_zip:
@@ -300,14 +276,15 @@ def compress_office_file(file_bytes, quality_slider=70):
                 fname_lower = item.filename.lower()
                 
                 is_img = any(fname_lower.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.webp'))
-                is_media_folder = any(folder in fname_lower for folder in ('media/', 'pictures/'))
+                is_media = any(f in fname_lower for f in ('media/', 'pictures/'))
                 
-                if is_img and is_media_folder:
+                if is_img and is_media:
                     media_count += 1
                     try:
                         img = Image.open(io.BytesIO(content))
                         img_buf = io.BytesIO()
                         
+                        # Turunkan dimensi piksel
                         new_w = max(1, int(img.width * scale_factor))
                         new_h = max(1, int(img.height * scale_factor))
                         img_resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -315,28 +292,41 @@ def compress_office_file(file_bytes, quality_slider=70):
                         if fname_lower.endswith(('.jpg', '.jpeg')):
                             if img_resized.mode in ("RGBA", "P"):
                                 img_resized = img_resized.convert("RGB")
-                            img_resized.save(img_buf, format="JPEG", quality=quality_slider, optimize=True)
+                            img_resized.save(img_buf, format="JPEG", quality=target_q, optimize=True)
+                            compressed = img_buf.getvalue()
+                            if len(compressed) < len(content):
+                                content = compressed
+                                
                         elif fname_lower.endswith('.png'):
-                            if img_resized.mode == "RGBA":
-                                img_resized = img_resized.quantize(colors=128, method=Image.Quantize.MEDIANCUT)
-                            img_resized.save(img_buf, format="PNG", optimize=True, compress_level=zip_level)
+                            # Kompresi PNG dengan Palette Quantization (pangkas ukuran 60-80%)
+                            num_colors = max(32, min(256, int(256 * scale_factor)))
+                            if img_resized.mode != "RGBA":
+                                img_p = img_resized.convert("RGB").convert("P", palette=Image.Palette.ADAPTIVE, colors=num_colors)
+                            else:
+                                img_p = img_resized.quantize(colors=num_colors, method=Image.Quantize.MEDIANCUT)
                             
-                        compressed_img = img_buf.getvalue()
-                        if len(compressed_img) < len(content):
-                            content = compressed_img
+                            img_p.save(img_buf, format="PNG", optimize=True, compress_level=9)
+                            compressed = img_buf.getvalue()
+                            if len(compressed) < len(content):
+                                content = compressed
                     except Exception:
                         pass
                 
-                # Gunakan ZipInfo baru agar level kompresi slider benar-benar diaplikasikan
+                # Tulis kembali dengan Deflate Level yang dipaksa aktif
                 zinfo = zipfile.ZipInfo(item.filename)
                 zinfo.date_time = item.date_time
                 zinfo.compress_type = zipfile.ZIP_DEFLATED
                 out_zip.writestr(zinfo, content, compresslevel=zip_level)
                 
-    return out_buf.getvalue(), media_count
+    hasil_bytes = out_buf.getvalue()
+    
+    # Proteksi: tidak boleh melebihi file awal
+    if len(hasil_bytes) >= bytes_asli:
+        return file_bytes, media_count
+    return hasil_bytes, media_count
 
 
-# ================= ENGINE KOMPRESI PDF (SUDAH DIPERBAIKI TOTAL) =================
+# ================= ENGINE KOMPRESI PDF (DIPERBAIKI) =================
 def compress_pdf_file(file_bytes, quality_slider=70):
     bytes_asli = len(file_bytes)
     in_buf = io.BytesIO(file_bytes)
@@ -344,39 +334,35 @@ def compress_pdf_file(file_bytes, quality_slider=70):
     writer = PdfWriter()
     
     total_pages = len(reader.pages)
-    
-    # Kloning halaman ke writer
     for page in reader.pages:
         writer.add_page(page)
-    
-    # 1. Bersihkan metadata dokumen yang sering memakan puluhan hingga ratusan KB
+        
     try:
         writer.add_metadata({})
     except Exception:
         pass
 
-    # Skala resolusi gambar (30% s.d 85%) & level deflate zlib
-    scale_factor = max(0.25, min(0.9, quality_slider / 100.0))
-    deflate_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
+    scale_factor = max(0.25, min(0.85, quality_slider / 100.0))
+    target_q = max(20, min(80, quality_slider))
     
-    # 2. Proses kompresi stream dan gambar internal
+    image_count = 0
     for page in writer.pages:
-        # Kompresi stream konten
         try:
-            page.compress_content_streams(level=deflate_level)
+            page.compress_content_streams(level=9)
         except Exception:
-            try:
-                page.compress_content_streams()
-            except Exception:
-                pass
-        
-        # Ekstraksi dan penulisan ulang gambar
+            pass
+            
         try:
             for img in page.images:
+                image_count += 1
                 try:
                     pil_img = img.image
+                    new_w = max(1, int(pil_img.width * scale_factor))
+                    new_h = max(1, int(pil_img.height * scale_factor))
                     
-                    # Konversi mode warna ke RGB jika ada channel alpha / CMYK
+                    if new_w < pil_img.width or new_h < pil_img.height:
+                        pil_img = pil_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
+                        
                     if pil_img.mode in ("RGBA", "LA", "P"):
                         bg = Image.new("RGB", pil_img.size, (255, 255, 255))
                         if pil_img.mode in ("RGBA", "LA"):
@@ -386,23 +372,13 @@ def compress_pdf_file(file_bytes, quality_slider=70):
                         pil_img = bg
                     elif pil_img.mode != "RGB":
                         pil_img = pil_img.convert("RGB")
-                    
-                    # Turunkan dimensi piksel secara agresif mengikuti slider
-                    new_w = max(1, int(pil_img.width * scale_factor))
-                    new_h = max(1, int(pil_img.height * scale_factor))
-                    
-                    if new_w < pil_img.width or new_h < pil_img.height:
-                        pil_img = pil_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
-                    
-                    # Target kualitas JPEG
-                    target_q = min(quality_slider, 80) # Batasi maks 80 agar tidak bengkak
+                        
                     img.replace(pil_img, quality=target_q)
                 except Exception:
                     pass
         except Exception:
             pass
-
-    # 3. Buang objek identik dan yatim (orphaned objects)
+            
     try:
         writer.compress_identical_objects(remove_identicals=True, remove_orphans=True)
     except Exception:
@@ -412,12 +388,10 @@ def compress_pdf_file(file_bytes, quality_slider=70):
     writer.write(out_buf)
     hasil_bytes = out_buf.getvalue()
     
-    # 4. PROTEKSI ANTI-BENGKAK:
-    # Jika hasil kompresi ternyata sama saja atau lebih besar dari file asli
+    # Proteksi: tidak boleh melebihi file awal
     if len(hasil_bytes) >= bytes_asli:
-        return file_bytes, total_pages
-        
-    return hasil_bytes, total_pages
+        return file_bytes, total_pages, image_count
+    return hasil_bytes, total_pages, image_count
 
 
 # ================= 1. MENU KOMPRES GAMBAR =================
@@ -425,9 +399,9 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
     file_img = st.file_uploader("Upload Foto / Gambar (JPG, PNG, WebP)", type=["jpg", "jpeg", "png", "webp"])
     
     if file_img:
-        img_original = Image.open(file_img)
         raw_bytes_awal = file_img.getvalue()
         bytes_awal = len(raw_bytes_awal)
+        img_original = Image.open(io.BytesIO(raw_bytes_awal))
         
         col1, col2 = st.columns(2)
         with col1:
@@ -435,22 +409,31 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         with col2:
             scale = st.slider("Skala Resolusi (%)", 10, 100, 100)
 
-        img_proses = img_original.copy()
-        new_w = int(img_original.width * (scale / 100))
-        new_h = int(img_original.height * (scale / 100))
+        # Proses kompresi
+        new_w = max(1, int(img_original.width * (scale / 100)))
+        new_h = max(1, int(img_original.height * (scale / 100)))
+        img_proses = img_original.resize((new_w, new_h), Image.Resampling.LANCZOS)
         
-        if scale < 100:
-            img_proses = img_proses.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            
-        out_img = io.BytesIO()
-        if img_proses.mode in ("RGBA", "P"):
+        if img_proses.mode in ("RGBA", "LA", "P"):
+            bg = Image.new("RGB", img_proses.size, (255, 255, 255))
+            if img_proses.mode in ("RGBA", "LA"):
+                bg.paste(img_proses, mask=img_proses.split()[-1])
+            else:
+                bg.paste(img_proses.convert("RGB"))
+            img_proses = bg
+        elif img_proses.mode != "RGB":
             img_proses = img_proses.convert("RGB")
             
+        out_img = io.BytesIO()
         img_proses.save(out_img, format="JPEG", quality=quality, optimize=True)
         res_img_bytes = out_img.getvalue()
-        bytes_akhir = len(res_img_bytes)
         
-        hemat = ((bytes_awal - bytes_akhir) / bytes_awal) * 100 if bytes_awal > 0 else 0
+        # Proteksi agar ukuran tidak membengkak di atas file asli
+        if len(res_img_bytes) > bytes_awal and scale == 100:
+            res_img_bytes = raw_bytes_awal
+            
+        bytes_akhir = len(res_img_bytes)
+        hemat = ((bytes_awal - bytes_akhir) / bytes_awal) * 100 if bytes_awal > bytes_akhir else 0.0
         
         st.markdown(f"""
         <div class="metrics-container">
@@ -470,7 +453,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         </div>
         """, unsafe_allow_html=True)
 
-        # Tombol Download Keren
         btn_download_img = st.download_button(
             label=f"⬇️ DOWNLOAD GAMBAR ({format_size(bytes_akhir)})",
             data=res_img_bytes,
@@ -481,12 +463,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         )
         if btn_download_img:
             show_download_loading_bar("Gambar")
-
-        st.markdown("""
-        <div class="info-tip">
-            🔍 <b>Pratinjau:</b> Geser tab di bawah untuk melihat perbandingan kualitas visual:
-        </div>
-        """, unsafe_allow_html=True)
 
         tab_hasil, tab_asli = st.tabs(["✨ Hasil Baru", "🔍 Foto Asli"])
         with tab_hasil:
@@ -507,11 +483,11 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
             min_value=10, 
             max_value=90, 
             value=50,
-            help="Geser ke kiri untuk mengecilkan dokumen secara maksimal."
+            help="Geser ke kiri untuk mengecilkan dokumen."
         )
         
         try:
-            res_pdf_bytes, total_pages = compress_pdf_file(file_pdf.getvalue(), quality_slider=pdf_q)
+            res_pdf_bytes, total_pages, total_img = compress_pdf_file(file_pdf.getvalue(), quality_slider=pdf_q)
             bytes_akhir_pdf = len(res_pdf_bytes)
             
             # Hitung persentase hemat secara presisi
@@ -519,7 +495,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 hemat_pdf = ((bytes_awal_pdf - bytes_akhir_pdf) / bytes_awal_pdf) * 100
             else:
                 hemat_pdf = 0.0
-                bytes_akhir_pdf = bytes_awal_pdf # Pastikan tidak ada nilai membengkak
+                bytes_akhir_pdf = bytes_awal_pdf
             
             st.markdown(f"""
             <div class="metrics-container">
@@ -533,17 +509,17 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                     <span class="badge-hemat">Hemat {hemat_pdf:.1f}%</span>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Halaman</div>
-                    <div class="metric-value">{total_pages} Hal</div>
+                    <div class="metric-label">Halaman / Gambar</div>
+                    <div class="metric-value">{total_pages} Hal / {total_img} Gbr</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # Info edukasi jika file didominasi teks/vektor murni
-            if hemat_pdf == 0.0:
+            if total_img == 0:
                 st.markdown("""
                 <div class="info-tip">
-                    ℹ️ <b>Informasi Dokumen:</b> PDF ini didominasi oleh teks vektor, font khusus, atau formulir tanpa elemen foto raster. Ukuran file ini sudah dalam kondisi paling optimal sehingga tidak dapat diperkecil lagi tanpa merusak ketajaman huruf.
+                    ℹ️ <b>Hasil Deteksi: 0 Gambar Ditemukan.</b><br>
+                    Dokumen ini 100% tersusun atas teks vektor dan font sistem. Berkas PDF berbasis teks murni sudah berada dalam batas kompresi terpadat dan tidak dapat diperkecil secara drastis tanpa menghapus teks.
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -573,17 +549,19 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         comp_level = st.slider(
             "Tingkat Kualitas & Kompresi Dokumen (%)", 
             min_value=10, 
-            max_value=95, 
-            value=60, 
-            help="10% = Kompresi maksimal (ukuran lebih kecil). 95% = Kualitas tinggi."
+            max_value=90, 
+            value=50, 
+            help="10% = Kompresi maksimal (ukuran paling kecil)."
         )
         
         res_off_bytes, jumlah_media = compress_office_file(file_office.getvalue(), quality_slider=comp_level)
         bytes_akhir_off = len(res_off_bytes)
         
-        hemat_off = ((bytes_awal_off - bytes_akhir_off) / bytes_awal_off) * 100 if bytes_awal_off > 0 else 0
-        if hemat_off < 0:
-            hemat_off = 0
+        if bytes_awal_off > bytes_akhir_off:
+            hemat_off = ((bytes_awal_off - bytes_akhir_off) / bytes_awal_off) * 100
+        else:
+            hemat_off = 0.0
+            bytes_akhir_off = bytes_awal_off
             
         label_info_ketiga = f"{jumlah_media} Gambar" if jumlah_media > 0 else f"{ext_doc}"
 
@@ -608,11 +586,10 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if jumlah_media == 0:
             st.markdown("""
             <div class="info-tip">
-                ℹ️ <b>Dokumen Teks:</b> File ini murni berbasis teks/tabel. Penurunan ukuran dioptimalkan melalui pemadatan kompresi XML Deflate level 1–9.
+                ℹ️ <b>Dokumen Teks Murni:</b> Berkas ini tidak memuat elemen foto/gambar. Penghematan ukuran dioptimalkan melalui pemadatan struktur XML dokumen (Level 9).
             </div>
             """, unsafe_allow_html=True)
         
-        # Tombol Download Keren
         btn_download_office = st.download_button(
             label=f"⬇️ DOWNLOAD DOKUMEN {ext_doc} ({format_size(bytes_akhir_off)})",
             data=res_off_bytes,
