@@ -1,11 +1,12 @@
 import streamlit as st
 import io
+import time
 import zipfile
 import streamlit.components.v1 as components
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 
-# Konfigurasi Halaman (Default sidebar tertutup di awal)
+# Konfigurasi Halaman (Sidebar tertutup secara default)
 st.set_page_config(
     page_title="CompressPro",
     page_icon="⚡",
@@ -13,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (MEMPERBESAR HAMBURGER & MENATA JARAK) =================
+# ================= CUSTOM CSS =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -21,82 +22,71 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    
-    /* 1. KURANGI JARAK KOSONG ATAS */
+
+    /* 1. KURANGI JARAK KOSONG DI ATAS */
     header[data-testid="stHeader"] {
         background: transparent !important;
+        height: 0px !important;
     }
     .main .block-container {
-        padding-top: 1.2rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 2rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 680px;
     }
 
-    /* 2. PERBESAR IKON HAMBURGER POJOK KIRI ATAS */
-    [data-testid="collapsedControl"] {
+    /* 2. IKON HAMBURGER KIRI ATAS DIBUAT BESAR & JELAS */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         position: fixed !important;
         top: 12px !important;
         left: 12px !important;
         z-index: 999999 !important;
     }
-    [data-testid="collapsedControl"] button {
-        width: 48px !important;
-        height: 48px !important;
-        background: #2563EB !important;
-        color: #ffffff !important;
-        border-radius: 12px !important;
+
+    [data-testid="collapsedControl"] button,
+    [data-testid="stSidebarCollapsedControl"] button {
+        width: 52px !important;
+        height: 52px !important;
+        background-color: #2563EB !important;
+        border-radius: 14px !important;
         border: none !important;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        transition: transform 0.2s ease !important;
-    }
-    [data-testid="collapsedControl"] button:active {
-        transform: scale(0.92) !important;
-    }
-    [data-testid="collapsedControl"] svg {
-        width: 26px !important;
-        height: 26px !important;
-        stroke: white !important;
-        fill: white !important;
     }
 
-    /* 3. TOMBOL TUTUP DI DALAM LACI SIDEBAR */
-    [data-testid="stSidebarCollapseButton"] button {
-        width: 44px !important;
-        height: 44px !important;
-        border-radius: 10px !important;
-        background: #F1F5F9 !important;
-    }
-    [data-testid="stSidebarCollapseButton"] svg {
-        width: 22px !important;
-        height: 22px !important;
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] svg {
+        width: 30px !important;
+        height: 30px !important;
+        stroke: #ffffff !important;
+        fill: #ffffff !important;
+        color: #ffffff !important;
     }
 
-    /* 4. PERBESAR TOMBOL-TOMBOL DI DALAM SIDEBAR */
+    /* 3. TOMBOL-TOMBOL DI DALAM SIDEBAR DIBUAT BESAR */
     [data-testid="stSidebar"] .stButton > button {
-        height: auto !important;
         font-size: 1.05rem !important;
         font-weight: 700 !important;
-        padding: 0.9rem 1.1rem !important;
-        margin-bottom: 0.6rem !important;
+        padding: 0.95rem 1.2rem !important;
+        margin-bottom: 0.7rem !important;
         border-radius: 12px !important;
         text-align: left !important;
         justify-content: flex-start !important;
     }
 
-    /* 5. HEADER JUDUL APLIKASI */
+    /* 4. HEADER UTAMA */
     .brand-header {
         text-align: center;
         margin-top: 0.2rem;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1.2rem;
     }
     .brand-title {
-        font-size: 1.7rem;
+        font-size: 1.75rem;
         font-weight: 800;
         background: linear-gradient(90deg, #2563EB, #7C3AED);
         -webkit-background-clip: text;
@@ -104,26 +94,13 @@ st.markdown("""
         margin: 0;
     }
     .brand-sub {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         color: #64748B;
-        margin-top: 2px;
+        font-weight: 600;
+        margin-top: 3px;
     }
 
-    /* 6. INDIKATOR MODE AKTIF */
-    .active-banner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 8px 14px;
-        margin-bottom: 1.2rem;
-        font-size: 0.85rem;
-        color: #334155;
-    }
-
-    /* 7. KARTU METRIK UKURAN FILE */
+    /* 5. KARTU METRIK RESPONSIF HP */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -167,7 +144,7 @@ st.markdown("""
         margin-top: 2px;
     }
 
-    /* 8. KOTAK TIP */
+    /* 6. INFO TIP */
     .info-tip {
         background: #F8FAFC;
         border-left: 3px solid #3B82F6;
@@ -180,69 +157,64 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Inisialisasi State Halaman
+# Inisialisasi State
 if "active_menu" not in st.session_state:
     st.session_state.active_menu = "🖼️ Kompres Gambar"
 
-if "trigger_close_sidebar" not in st.session_state:
-    st.session_state.trigger_close_sidebar = False
+if "close_sidebar_trigger" not in st.session_state:
+    st.session_state.close_sidebar_trigger = False
 
-# ================= KODE OTOMATIS PENUTUP SIDEBAR (BERGESER KEMBALI) =================
-if st.session_state.trigger_close_sidebar:
-    st.session_state.trigger_close_sidebar = False
-    components.html("""
+# ================= SKRIP PENUTUP OTOMATIS SIDEBAR =================
+if st.session_state.close_sidebar_trigger:
+    st.session_state.close_sidebar_trigger = False
+    # Menggunakan timestamp unik agar script selalu dieksekusi setiap tombol diklik
+    components.html(f"""
         <script>
-            // Mencari tombol tutup di dalam laci sidebar dan menekannya otomatis
-            var parentDoc = window.parent.document;
-            var closeBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
-                           parentDoc.querySelector('button[aria-label="Close sidebar"]');
-            if (closeBtn) {
-                closeBtn.click();
-            }
+            // Timestamp: {time.time()}
+            setTimeout(function() {{
+                try {{
+                    const parentDoc = window.parent.document;
+                    const closeBtn = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
+                                     parentDoc.querySelector('button[aria-label="Close sidebar"]') ||
+                                     parentDoc.querySelector('[data-testid="stSidebarCollapseButton"]');
+                    if (closeBtn) {{
+                        closeBtn.click();
+                    }} else {{
+                        const backdrop = parentDoc.querySelector('[data-testid="stSidebarBackdrop"]');
+                        if (backdrop) backdrop.click();
+                    }}
+                }} catch (e) {{
+                    console.log(e);
+                }}
+            }}, 50);
         </script>
     """, height=0, width=0)
 
-# ================= ISI LACI SIDEBAR =================
+# ================= MENU DI DALAM SIDEBAR =================
 with st.sidebar:
-    st.markdown("### ⚡ **Menu Kompresi**")
-    st.caption("Pilih kategori di bawah ini:")
+    st.markdown("<h2 style='font-weight:800; color:#0F172A; margin-top:0;'>⚡ Menu Pilihan</h2>", unsafe_allow_html=True)
+    st.write("")
     
-    menu_options = [
-        ("🖼️ Kompres Gambar", "menu_img"),
-        ("📄 Kompres Dokumen PDF", "menu_pdf"),
-        ("📊 Kompres Dokumen Office", "menu_office")
+    daftar_menu = [
+        ("🖼️ Kompres Gambar", "btn_nav_img"),
+        ("📄 Kompres Dokumen PDF", "btn_nav_pdf"),
+        ("📊 Kompres Dokumen Office", "btn_nav_office")
     ]
     
-    for label, key_name in menu_options:
+    for label, key_btn in daftar_menu:
         is_active = (st.session_state.active_menu == label)
-        btn_type = "primary" if is_active else "secondary"
+        tipe_tombol = "primary" if is_active else "secondary"
         
-        if st.button(label, key=key_name, use_container_width=True, type=btn_type):
+        if st.button(label, key=key_btn, use_container_width=True, type=tipe_tombol):
             st.session_state.active_menu = label
-            # Aktifkan pemicu agar laci menutup otomatis
-            st.session_state.trigger_close_sidebar = True
+            st.session_state.close_sidebar_trigger = True
             st.rerun()
 
-    st.markdown("---")
-    st.markdown("""
-        <div style='font-size: 0.78rem; color: #64748B;'>
-            💡 <b>Tips:</b> Klik tombol menu di atas, maka laci sidebar akan otomatis bergeser menutup.
-        </div>
-    """, unsafe_allow_html=True)
-
 # ================= HEADER UTAMA =================
-st.markdown("""
+st.markdown(f"""
 <div class="brand-header">
     <h1 class="brand-title">⚡ CompressPro</h1>
-    <div class="brand-sub">Kompres File Cepat & Berkualitas</div>
-</div>
-""", unsafe_allow_html=True)
-
-# Indikator Mode Aktif
-st.markdown(f"""
-<div class="active-banner">
-    <span>Kategori Terpilih: <b>{st.session_state.active_menu}</b></span>
-    <span style="font-size: 0.75rem; color: #2563EB;">☰ Buka Menu di Kiri Atas</span>
+    <div class="brand-sub">{st.session_state.active_menu}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -278,9 +250,10 @@ def compress_office_file(file_bytes, image_quality=60):
                 
     return out_buf.getvalue()
 
+
 # ================= 1. HALAMAN KOMPRES GAMBAR =================
 if st.session_state.active_menu == "🖼️ Kompres Gambar":
-    file_img = st.file_uploader("Upload Foto / Gambar", type=["jpg", "jpeg", "png", "webp"])
+    file_img = st.file_uploader("Upload Foto / Gambar (JPG, PNG)", type=["jpg", "jpeg", "png", "webp"])
     
     if file_img:
         img_original = Image.open(file_img)
@@ -292,7 +265,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         with col2:
             scale = st.slider("Skala Resolusi (%)", 10, 100, 100)
 
-        # Proses Real-time
         img_proses = img_original.copy()
         new_w = int(img_original.width * (scale / 100))
         new_h = int(img_original.height * (scale / 100))
@@ -310,7 +282,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         size_akhir_kb = len(res_img_bytes) / 1024
         hemat = ((size_awal_kb - size_akhir_kb) / size_awal_kb) * 100
         
-        # Kartu Metrik Rapi di HP
         st.markdown(f"""
         <div class="metrics-container">
             <div class="metric-card">
@@ -339,7 +310,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
 
         st.markdown("""
         <div class="info-tip">
-            🔍 <b>Cek Pratinjau:</b> Pindah tab di bawah untuk melihat ketajaman gambar:
+            🔍 <b>Pratinjau:</b> Geser tab di bawah untuk melihat ketajaman gambar:
         </div>
         """, unsafe_allow_html=True)
 
@@ -349,16 +320,17 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         with tab_asli:
             st.image(file_img, caption=f"Foto Asli ({img_original.width} × {img_original.height} px)", use_container_width=True)
 
+
 # ================= 2. HALAMAN KOMPRES PDF =================
 elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
-    file_pdf = st.file_uploader("Upload File Dokumen PDF", type=["pdf"])
+    file_pdf = st.file_uploader("Upload Dokumen PDF", type=["pdf"])
     
     if file_pdf:
         size_awal_pdf = len(file_pdf.getvalue()) / 1024
         st.info(f"Ukuran Asli Dokumen: **{size_awal_pdf:.2f} KB**")
         
         if st.button("🚀 Mulai Kompres Dokumen PDF", use_container_width=True):
-            with st.spinner("Sedang memproses struktur dokumen PDF..."):
+            with st.spinner("Mengompres file PDF..."):
                 reader = PdfReader(file_pdf)
                 writer = PdfWriter()
                 
@@ -395,19 +367,20 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                     use_container_width=True
                 )
 
+
 # ================= 3. HALAMAN KOMPRES OFFICE =================
 elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
-    st.caption("Mendukung format Word (.docx), PowerPoint (.pptx), dan Excel (.xlsx)")
+    st.caption("Mendukung Word (.docx), PowerPoint (.pptx), dan Excel (.xlsx)")
     file_office = st.file_uploader("Upload Dokumen Office", type=["docx", "pptx", "xlsx"])
     
     if file_office:
         size_awal_off = len(file_office.getvalue()) / 1024
         st.info(f"Ukuran Asli Dokumen: **{size_awal_off:.2f} KB**")
         
-        img_q = st.slider("Kualitas Gambar di Dalam Dokumen (%)", 20, 90, 60)
+        img_q = st.slider("Kualitas Kompresi Gambar Internal (%)", 20, 90, 60)
         
         if st.button("🚀 Mulai Kompres Dokumen Office", use_container_width=True):
-            with st.spinner("Mengompres dokumen dan media di dalamnya..."):
+            with st.spinner("Mengompres dokumen..."):
                 res_off_bytes = compress_office_file(file_office.getvalue(), image_quality=img_q)
                 size_akhir_off = len(res_off_bytes) / 1024
                 hemat_off = ((size_awal_off - size_akhir_off) / size_awal_off) * 100 if size_awal_off > 0 else 0
@@ -427,7 +400,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 """, unsafe_allow_html=True)
                 
                 st.download_button(
-                    label=f"⬇️ Download File ({size_akhir_off:.1f} KB)",
+                    label=f"⬇️ Download Dokumen ({size_akhir_off:.1f} KB)",
                     data=res_off_bytes,
                     file_name=f"optimized_{file_office.name}",
                     mime="application/octet-stream",
