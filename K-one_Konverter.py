@@ -323,49 +323,66 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
 
 # ================= 2. HALAMAN KOMPRES PDF =================
 elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
-    file_pdf = st.file_uploader("Upload Dokumen PDF", type=["pdf"])
-    
-    if file_pdf:
-        size_awal_pdf = len(file_pdf.getvalue()) / 1024
-        st.info(f"Ukuran Asli Dokumen: **{size_awal_pdf:.2f} KB**")
-        
-        if st.button("🚀 Mulai Kompres Dokumen PDF", use_container_width=True):
-            with st.spinner("Mengompres file PDF..."):
-                reader = PdfReader(file_pdf)
-                writer = PdfWriter()
-                
-                for page in reader.pages:
-                    page.compress_content_streams()
-                    writer.add_page(page)
-                    
-                out_pdf = io.BytesIO()
-                writer.write(out_pdf)
-                res_pdf_bytes = out_pdf.getvalue()
-                
-                size_akhir_pdf = len(res_pdf_bytes) / 1024
-                hemat_pdf = ((size_awal_pdf - size_akhir_pdf) / size_awal_pdf) * 100 if size_awal_pdf > 0 else 0
-                
-                st.markdown(f"""
-                <div class="metrics-container" style="grid-template-columns: 1fr 1fr; margin-top: 1rem;">
-                    <div class="metric-card">
-                        <div class="metric-label">Ukuran Asli</div>
-                        <div class="metric-value">{size_awal_pdf:.1f} KB</div>
+  file_pdf = st.file_uploader("Upload Dokumen PDF", type=["pdf"])
+
+  if file_pdf:
+    size_awal_pdf = len(file_pdf.getvalue()) / 1024
+    st.info(f"Ukuran Asli Dokumen: **{size_awal_pdf:.2f} KB**")
+
+    if st.button("🚀 Mulai Kompres Dokumen PDF", use_container_width=True):
+      with st.spinner("Mengompres file PDF..."):
+        try:
+          reader = PdfReader(file_pdf)
+          writer = PdfWriter()
+
+          # 1. Masukkan semua halaman ke writer terlebih dahulu
+          for page in reader.pages:
+            writer.add_page(page)
+
+          # 2. Kompres halaman setelah menjadi bagian dari writer
+          for page in writer.pages:
+            try:
+              page.compress_content_streams()
+            except Exception:
+              pass
+
+          out_pdf = io.BytesIO()
+          writer.write(out_pdf)
+          res_pdf_bytes = out_pdf.getvalue()
+
+          size_akhir_pdf = len(res_pdf_bytes) / 1024
+          hemat_pdf = (
+              ((size_awal_pdf - size_akhir_pdf) / size_awal_pdf) * 100
+              if size_awal_pdf > 0
+              else 0
+          )
+
+          st.markdown(
+              f"""
+                    <div class="metrics-container" style="grid-template-columns: 1fr 1fr; margin-top: 1rem;">
+                        <div class="metric-card">
+                            <div class="metric-label">Ukuran Asli</div>
+                            <div class="metric-value">{size_awal_pdf:.1f} KB</div>
+                        </div>
+                        <div class="metric-card highlight">
+                            <div class="metric-label">Ukuran Baru</div>
+                            <div class="metric-value">{size_akhir_pdf:.1f} KB</div>
+                            <span class="badge-hemat">Hemat {hemat_pdf:.1f}%</span>
+                        </div>
                     </div>
-                    <div class="metric-card highlight">
-                        <div class="metric-label">Ukuran Baru</div>
-                        <div class="metric-value">{size_akhir_pdf:.1f} KB</div>
-                        <span class="badge-hemat">Hemat {hemat_pdf:.1f}%</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.download_button(
-                    label="⬇️ Download PDF Hasil Kompresi",
-                    data=res_pdf_bytes,
-                    file_name=f"compressed_{file_pdf.name}",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
+                    """,
+              unsafe_allow_html=True,
+          )
+
+          st.download_button(
+              label="⬇️ Download PDF Hasil Kompresi",
+              data=res_pdf_bytes,
+              file_name=f"compressed_{file_pdf.name}",
+              mime="application/pdf",
+              use_container_width=True,
+          )
+        except Exception as e:
+          st.error(f"Gagal memproses file PDF: {e}")
 
 
 # ================= 3. HALAMAN KOMPRES OFFICE =================
