@@ -228,20 +228,18 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# ================= FUNGSI KOMPRESI OFFICE =================
+# ================= FUNGSI KOMPRESI OFFICE (DIPERBAIKI) =================
 def compress_office_file(file_bytes, quality_slider=70):
     in_buf = io.BytesIO(file_bytes)
     out_buf = io.BytesIO()
     media_count = 0
     
-    # Menghubungkan slider ke tingkat kompresi deflate (Level 1 sampai 9)
-    # Slider 100% -> Level 1 (kompresi ringan, ukuran lebih besar)
-    # Slider 10%  -> Level 9 (kompresi maksimum, ukuran paling kecil)
+    # 10% -> level 9 (maksimal), 95% -> level 1
     zip_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
     scale_factor = max(0.2, min(1.0, quality_slider / 100.0))
     
     with zipfile.ZipFile(in_buf, 'r') as in_zip:
-        with zipfile.ZipFile(out_buf, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=zip_level) as out_zip:
+        with zipfile.ZipFile(out_buf, 'w') as out_zip:
             for item in in_zip.infolist():
                 content = in_zip.read(item.filename)
                 fname_lower = item.filename.lower()
@@ -255,6 +253,7 @@ def compress_office_file(file_bytes, quality_slider=70):
                         img = Image.open(io.BytesIO(content))
                         img_buf = io.BytesIO()
                         
+                        # Turunkan dimensi gambar sesuai slider
                         new_w = max(1, int(img.width * scale_factor))
                         new_h = max(1, int(img.height * scale_factor))
                         img_resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
@@ -264,32 +263,41 @@ def compress_office_file(file_bytes, quality_slider=70):
                                 img_resized = img_resized.convert("RGB")
                             img_resized.save(img_buf, format="JPEG", quality=quality_slider, optimize=True)
                         elif fname_lower.endswith('.png'):
-                            img_resized.save(img_buf, format="PNG", optimize=True)
+                            # Jika PNG transparan/warna banyak, kompres dengan quantize (palette) agar ukuran turun drastis
+                            if img_resized.mode == "RGBA":
+                                img_resized = img_resized.quantize(colors=128, method=Image.Quantize.MEDIANCUT)
+                            img_resized.save(img_buf, format="PNG", optimize=True, compress_level=zip_level)
                             
                         compressed_img = img_buf.getvalue()
+                        # Gunakan gambar yang baru jika ukurannya lebih kecil
                         if len(compressed_img) < len(content):
                             content = compressed_img
                     except Exception:
                         pass
                 
-                out_zip.writestr(item, content)
+                # PERBAIKAN: Buat ZipInfo baru agar parameter 'compresslevel' benar-benar aktif
+                zinfo = zipfile.ZipInfo(item.filename)
+                zinfo.date_time = item.date_time
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                out_zip.writestr(zinfo, content, compresslevel=zip_level)
                 
     return out_buf.getvalue(), media_count
 
 
-# ================= FUNGSI KOMPRESI PDF =================
+# ================= FUNGSI KOMPRESI PDF (DIPERBAIKI) =================
 def compress_pdf_file(file_bytes, quality_slider=70):
     in_buf = io.BytesIO(file_bytes)
     reader = PdfReader(in_buf)
     writer = PdfWriter()
     
-    # Deflate level 1 - 9 berdasarkan slider
     deflate_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
+    scale_factor = max(0.3, min(1.0, quality_slider / 100.0))
     
     for page in reader.pages:
         writer.add_page(page)
         
     for page in writer.pages:
+        # 1. Kompres teks & streams dokumen
         try:
             page.compress_content_streams(level=deflate_level)
         except Exception:
@@ -298,11 +306,31 @@ def compress_pdf_file(file_bytes, quality_slider=70):
             except Exception:
                 pass
             
-        # Kompres gambar di dalam halaman PDF jika ada
+        # 2. Kompres & kecilkan resolusi gambar internal di PDF
         try:
             for img in page.images:
                 try:
-                    img.replace(img.image, quality=quality_slider)
+                    pil_img = img.image
+                    
+                    # Normalisasi mode gambar agar tidak gagal saat disimpan ulang
+                    if pil_img.mode in ("RGBA", "LA", "P"):
+                        bg = Image.new("RGB", pil_img.size, (255, 255, 255))
+                        if pil_img.mode in ("RGBA", "LA"):
+                            bg.paste(pil_img, mask=pil_img.split()[-1])
+                        else:
+                            bg.paste(pil_img.convert("RGB"))
+                        pil_img = bg
+                    elif pil_img.mode != "RGB":
+                        pil_img = pil_img.convert("RGB")
+                    
+                    # Kecilkan resolusi gambar agar ukuran file turun drastis
+                    if scale_factor < 1.0:
+                        new_w = max(1, int(pil_img.width * scale_factor))
+                        new_h = max(1, int(pil_img.height * scale_factor))
+                        pil_img = pil_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
+                    
+                    # Ganti gambar lama dengan versi terkompresi
+                    img.replace(pil_img, quality=quality_slider)
                 except Exception:
                     pass
         except Exception:
