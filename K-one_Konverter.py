@@ -289,7 +289,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 7. TOMBOL UNDUH SATUAN DI DALAM EXPANDER (WARNA SENADA) */
+    /* 7. TOMBOL UNDUH SATUAN DI DALAM EXPANDER */
     div[data-testid="stExpander"] [data-testid="stDownloadButton"] > button {
         background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
         color: #FFFFFF !important;
@@ -309,6 +309,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# ================= WADAH UTAMA FLOATING HUD (GLOBAL ROOT SLOT) =================
+# Diletakkan di root agar tidak pernah terpotong/terjebak di dalam kolom atau expander
+hud_slot = st.empty()
+
+
 # ================= HELPER UKURAN FILE =================
 def format_size(size_in_bytes):
     if size_in_bytes < 1024:
@@ -321,14 +326,12 @@ def format_size(size_in_bytes):
 
 # ================= VISUAL LOADING MELAYANG (FLOATING HUD) =================
 def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
-    """Menampilkan progress bar melayang di atas layar dengan jeda ~2.5 detik"""
-    loading_box = st.empty()
+    """Menampilkan progress bar melayang di atas layar dari level root selama ~2.5 detik"""
     nama_label = "Bundle ZIP" if is_bundle else (f"'{file_name}'" if file_name else "Berkas")
     
-    # 5 Tahapan proses dengan total durasi ~2.5 detik agar terlihat keren
     stages = [
         (18, f"⚡ Menginisialisasi transfer {nama_label}...", 0.4),
-        (42, "📦 Memadatkan aliran data berkas...", 0.5),
+        (42, "📦 Memadatkan & mengemas data berkas...", 0.5),
         (72, "⚡ Mengoptimalkan paket kompresi...", 0.6),
         (92, "🚀 Menyinkronkan unduhan ke perangkat...", 0.5),
         (100, "✅ Selesai! Berkas siap diunduh...", 0.45)
@@ -343,13 +346,13 @@ def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
             transform: translateX(-50%);
             z-index: 99999999;
             width: min(90vw, 440px);
-            background: rgba(15, 23, 42, 0.94);
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
-            border: 1.5px solid rgba(99, 102, 241, 0.5);
+            border: 1.5px solid rgba(99, 102, 241, 0.55);
             border-radius: 18px;
             padding: 14px 20px;
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(99, 102, 241, 0.35);
             font-family: 'Plus Jakarta Sans', sans-serif;
             pointer-events: none;
         ">
@@ -370,10 +373,10 @@ def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
             </div>
         </div>
         """
-        loading_box.markdown(floating_html, unsafe_allow_html=True)
+        hud_slot.markdown(floating_html, unsafe_allow_html=True)
         time.sleep(delay)
         
-    loading_box.empty()
+    hud_slot.empty()
     
     # Notifikasi spesifik sesuai permintaan
     if kategori == "gambar":
@@ -670,7 +673,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
-        # Tombol Download ZIP (Dengan Loading Melayang)
+        # Tombol Download ZIP (Memanggil hud_slot global)
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -682,7 +685,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading(kategori="gambar", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Loading Melayang)
+        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -770,7 +773,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_pdf = zip_buf_pdf.getvalue()
 
-        # Tombol Download ZIP (Dengan Loading Melayang)
+        # Tombol Download ZIP (Memanggil hud_slot global)
         btn_zip_pdf = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes_pdf))})",
             data=zip_bytes_pdf,
@@ -782,7 +785,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading(kategori="pdf", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Loading Melayang)
+        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -869,7 +872,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_off = zip_buf_off.getvalue()
 
-        # Tombol Download ZIP (Dengan Loading Melayang)
+        # Tombol Download ZIP (Memanggil hud_slot global)
         btn_zip_off = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_off)} DOKUMEN) - ZIP ({format_size(len(zip_bytes_off))})",
             data=zip_bytes_off,
@@ -881,7 +884,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading(kategori="office", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Loading Melayang)
+        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
