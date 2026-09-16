@@ -4,16 +4,137 @@ import zipfile
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 
+# Konfigurasi Halaman
 st.set_page_config(
-    page_title="Universal File Compressor",
-    page_icon="🗜️",
-    layout="centered"
+    page_title="CompressPro - File Optimizer",
+    page_icon="⚡",
+    layout="centered",
+    initial_sidebar_state="collapsed"  # Otomatis rapi saat pertama kali dibuka di HP
 )
 
-st.title("🗜️ Universal File Compressor")
-st.write("Perkecil ukuran file **Gambar (JPG/PNG)**, **Dokumen PDF**, serta **Office (Word, Excel, PowerPoint)**.")
+# ================= CUSTOM CSS (TAMPILAN MODERN & MOBILE-FRIENDLY) =================
+st.markdown("""
+<style>
+    /* Font & Global Styling */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    /* Header Modern */
+    .main-header {
+        text-align: center;
+        padding: 1rem 0 1.5rem 0;
+    }
+    .main-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #2563EB, #7C3AED);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.25rem;
+    }
+    .main-header p {
+        font-size: 0.95rem;
+        color: #64748B;
+        margin: 0;
+    }
 
-# ================= FUNGSI BANTUAN KOMPRESI OFFICE =================
+    /* Container Kartu Statistik (Metrics) Responsif untuk Layar HP */
+    .metrics-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 1rem 0;
+    }
+    
+    .metric-card {
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 10px 8px;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    
+    .metric-card.highlight {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+    }
+    
+    .metric-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748B;
+        margin-bottom: 2px;
+    }
+    
+    .metric-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0F172A;
+    }
+    
+    .metric-card.highlight .metric-value {
+        color: #1D4ED8;
+    }
+
+    .badge-hemat {
+        display: inline-block;
+        background: #DCFCE7;
+        color: #15803D;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 9999px;
+        margin-top: 3px;
+    }
+
+    /* Kotak Info Tip */
+    .info-tip {
+        background: #F1F5F9;
+        border-left: 4px solid #3B82F6;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #334155;
+        margin: 1.2rem 0 0.8rem 0;
+    }
+
+    /* Styling Slider & Tombol */
+    .stButton>button {
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.55rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    /* Penyesuaian Khusus Layar HP (Mobile) */
+    @media (max-width: 640px) {
+        .main-header h1 {
+            font-size: 1.6rem;
+        }
+        .metrics-container {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .metric-value {
+            font-size: 0.88rem;
+        }
+        .metric-label {
+            font-size: 0.65rem;
+        }
+        .info-tip {
+            font-size: 0.78rem;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ================= LOGIKA KOMPRESI OFFICE =================
 def compress_office_file(file_bytes, image_quality=60):
     in_buf = io.BytesIO(file_bytes)
     out_buf = io.BytesIO()
@@ -23,7 +144,7 @@ def compress_office_file(file_bytes, image_quality=60):
             for item in in_zip.infolist():
                 content = in_zip.read(item.filename)
                 
-                # Cek jika ada file gambar internal di dokumen (biasanya di folder media/)
+                # Optimasi gambar di dalam arsip dokumen
                 if any(item.filename.lower().endswith(ext) for ext in ('.png', '.jpg', '.jpeg')) and 'media/' in item.filename:
                     try:
                         img = Image.open(io.BytesIO(content))
@@ -37,7 +158,6 @@ def compress_office_file(file_bytes, image_quality=60):
                             img.save(img_buf, format="PNG", optimize=True)
                             
                         compressed_img = img_buf.getvalue()
-                        # Pakai gambar baru jika ukurannya terbukti lebih kecil
                         if len(compressed_img) < len(content):
                             content = compressed_img
                     except Exception:
@@ -47,31 +167,51 @@ def compress_office_file(file_bytes, image_quality=60):
                 
     return out_buf.getvalue()
 
-# ================= MEMBUAT TABS =================
-tab_img, tab_pdf, tab_office = st.tabs([
-    "🖼️ Gambar (JPG/PNG)", 
-    "📄 Dokumen PDF", 
-    "📊 Office (Word, Excel, PPT)"
-])
+# ================= SIDEBAR MENU (HAMBURGER DRAWER DI HP) =================
+with st.sidebar:
+    st.markdown("### ⚡ **Menu Kompresi**")
+    st.caption("Pilih jenis dokumen yang ingin Anda perkecil:")
+    menu = st.radio(
+        "Navigasi",
+        options=["🖼️ Kompres Gambar", "📄 Kompres Dokumen PDF", "📊 Kompres Dokumen Office"],
+        label_visibility="collapsed"
+    )
+    
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='font-size: 0.8rem; color: #64748B;'>
+            🔒 <b>Aman & Privat:</b><br>
+            File diproses langsung di memori dan tidak disimpan di server.
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
 
-# ================= 1. TAB GAMBAR (INTERAKTIF & REAL-TIME) =================
-with tab_img:
-    st.subheader("Kompres Gambar Cerdas (Live Preview)")
-    file_img = st.file_uploader("Upload gambar Anda", type=["jpg", "jpeg", "png", "webp"], key="upload_img")
+# ================= HEADER UTAMA =================
+st.markdown("""
+<div class="main-header">
+    <h1>CompressPro</h1>
+    <p>Optimasi file besar menjadi ringan dalam hitungan detik</p>
+</div>
+""", unsafe_allow_html=True)
+
+# ================= 1. MENU GAMBAR =================
+if menu == "🖼️ Kompres Gambar":
+    file_img = st.file_uploader("Upload Foto / Gambar (JPG, PNG, WebP)", type=["jpg", "jpeg", "png", "webp"])
     
     if file_img:
         img_original = Image.open(file_img)
         size_awal_kb = len(file_img.getvalue()) / 1024
         
-        st.write("---")
-        # Kontrol Slider
-        col_ctrl1, col_ctrl2 = st.columns(2)
-        with col_ctrl1:
-            quality = st.slider("🎚️ Kualitas Gambar (%)", min_value=10, max_value=95, value=70)
-        with col_ctrl2:
-            scale = st.slider("📐 Skala Dimensi (%)", min_value=10, max_value=100, value=100)
+        # Pengaturan Slider
+        col1, col2 = st.columns(2)
+        with col1:
+            quality = st.slider("Kualitas Kompresi", 10, 95, 70, help="Makin tinggi makin jernih.")
+        with col2:
+            scale = st.slider("Skala Dimensi (%)", 10, 100, 100, help="Turunkan skala jika file masih terlalu besar.")
 
-        # Proses otomatis di memori setiap kali slider bergeser
+        # Proses Real-time
         img_proses = img_original.copy()
         new_w = int(img_original.width * (scale / 100))
         new_h = int(img_original.height * (scale / 100))
@@ -87,49 +227,68 @@ with tab_img:
         res_img_bytes = out_img.getvalue()
         
         size_akhir_kb = len(res_img_bytes) / 1024
-        hemat_img = ((size_awal_kb - size_akhir_kb) / size_awal_kb) * 100
+        hemat = ((size_awal_kb - size_akhir_kb) / size_awal_kb) * 100
         
-        # Ringkasan Informasi Live
-        st.write("---")
-        m1, m2, m3 = st.columns(3)
-        m1.metric(label="Ukuran Asli", value=f"{size_awal_kb:.1f} KB")
-        m2.metric(
-            label="Estimasi Hasil", 
-            value=f"{size_akhir_kb:.1f} KB", 
-            delta=f"-{hemat_img:.1f}%", 
-            delta_color="normal"
-        )
-        m3.metric(label="Resolusi Piksel", value=f"{new_w} × {new_h} px")
+        # TAMPILAN METRIK KARTU PROFESIONAL (RESPONSIF HP)
+        st.markdown(f"""
+        <div class="metrics-container">
+            <div class="metric-card">
+                <div class="metric-label">Ukuran Asli</div>
+                <div class="metric-value">{size_awal_kb:.1f} KB</div>
+            </div>
+            <div class="metric-card highlight">
+                <div class="metric-label">Hasil Baru</div>
+                <div class="metric-value">{size_akhir_kb:.1f} KB</div>
+                <span class="badge-hemat">Hemat {hemat:.1f}%</span>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Resolusi</div>
+                <div class="metric-value">{new_w}×{new_h}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # Tombol Download Terintegrasi
+        # Tombol Unduh Utama
         st.download_button(
-            label=f"⬇️ Download Hasil Kompresi ({size_akhir_kb:.1f} KB)",
+            label=f"⬇️ Download Gambar ({size_akhir_kb:.1f} KB)",
             data=res_img_bytes,
             file_name=f"compressed_{file_img.name.rsplit('.', 1)[0]}.jpg",
             mime="image/jpeg",
             use_container_width=True
         )
 
-        # Layar Komparasi Gambar (Asli vs Hasil)
-        st.write("---")
-        st.caption("🔍 Periksa ketajaman gambar di bawah ini sebelum mendownload:")
-        prev1, prev2 = st.columns(2)
-        with prev1:
-            st.image(file_img, caption=f"Asli ({img_original.width}×{img_original.height})", use_container_width=True)
-        with prev2:
-            st.image(res_img_bytes, caption=f"Hasil Kompresi ({new_w}×{new_h})", use_container_width=True)
+        # Banner Info Rapi
+        st.markdown("""
+        <div class="info-tip">
+            🔍 <b>Cek Pratinjau:</b> Geser tab di bawah untuk melihat ketajaman gambar sebelum Anda mengunduhnya.
+        </div>
+        """, unsafe_allow_html=True)
 
-# ================= 2. TAB PDF =================
-with tab_pdf:
-    st.subheader("Kompres Dokumen PDF")
-    file_pdf = st.file_uploader("Upload Dokumen PDF", type=["pdf"], key="upload_pdf")
+        # Tampilan Preview Tab (Ramah HP agar foto tidak terhimpit sempit)
+        tab_hasil, tab_asli = st.tabs(["✨ Hasil Baru", "🔍 Gambar Asli"])
+        with tab_hasil:
+            st.image(res_img_bytes, caption=f"Hasil Kompresi ({new_w} × {new_h} px)", use_container_width=True)
+        with tab_asli:
+            st.image(file_img, caption=f"Asli ({img_original.width} × {img_original.height} px)", use_container_width=True)
+
+# ================= 2. MENU DOKUMEN PDF =================
+elif menu == "📄 Kompres Dokumen PDF":
+    file_pdf = st.file_uploader("Upload Dokumen PDF", type=["pdf"])
     
     if file_pdf:
         size_awal_pdf = len(file_pdf.getvalue()) / 1024
-        st.info(f"Ukuran Asli Dokumen: **{size_awal_pdf:.2f} KB**")
         
-        if st.button("🚀 Mulai Kompres Dokumen PDF", key="btn_pdf", use_container_width=True):
-            with st.spinner("Sedang memproses struktur dokumen PDF..."):
+        st.markdown(f"""
+        <div class="metrics-container" style="grid-template-columns: 1fr;">
+            <div class="metric-card">
+                <div class="metric-label">Ukuran Asli PDF</div>
+                <div class="metric-value">{size_awal_pdf:.2f} KB</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.button("🚀 Mulai Kompres Dokumen PDF", use_container_width=True):
+            with st.spinner("Sedang memproses struktur file PDF..."):
                 reader = PdfReader(file_pdf)
                 writer = PdfWriter()
                 
@@ -144,7 +303,20 @@ with tab_pdf:
                 size_akhir_pdf = len(res_pdf_bytes) / 1024
                 hemat_pdf = ((size_awal_pdf - size_akhir_pdf) / size_awal_pdf) * 100 if size_awal_pdf > 0 else 0
                 
-                st.success(f"Ukuran Baru: **{size_akhir_pdf:.2f} KB** (Hemat {hemat_pdf:.1f}%)")
+                st.markdown(f"""
+                <div class="metrics-container" style="grid-template-columns: 1fr 1fr; margin-top: 1rem;">
+                    <div class="metric-card">
+                        <div class="metric-label">Ukuran Asli</div>
+                        <div class="metric-value">{size_awal_pdf:.1f} KB</div>
+                    </div>
+                    <div class="metric-card highlight">
+                        <div class="metric-label">Ukuran Baru</div>
+                        <div class="metric-value">{size_akhir_pdf:.1f} KB</div>
+                        <span class="badge-hemat">Hemat {hemat_pdf:.1f}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 st.download_button(
                     label="⬇️ Download PDF Hasil Kompresi",
                     data=res_pdf_bytes,
@@ -153,28 +325,47 @@ with tab_pdf:
                     use_container_width=True
                 )
 
-# ================= 3. TAB OFFICE (DOCX, PPTX, XLSX) =================
-with tab_office:
-    st.subheader("Kompres File Word, PowerPoint, & Excel")
-    st.caption("Aplikasi akan memadatkan arsip dokumen dan memperkecil resolusi foto/gambar internal yang menempel di dalamnya.")
-    
-    file_office = st.file_uploader("Upload File Office (.docx, .pptx, .xlsx)", type=["docx", "pptx", "xlsx"], key="upload_office")
+# ================= 3. MENU DOKUMEN OFFICE =================
+elif menu == "📊 Kompres Dokumen Office":
+    st.caption("Mendukung Word (.docx), PowerPoint (.pptx), dan Excel (.xlsx)")
+    file_office = st.file_uploader("Upload Dokumen Office", type=["docx", "pptx", "xlsx"])
     
     if file_office:
         size_awal_off = len(file_office.getvalue()) / 1024
-        st.info(f"Ukuran Asli Dokumen: **{size_awal_off:.2f} KB**")
         
-        img_q = st.slider("Kualitas Gambar di Dalam Dokumen (%)", min_value=20, max_value=90, value=60, help="Makin rendah persentasenya, gambar di dalam slide/dokumen makin hemat ukuran.")
+        st.markdown(f"""
+        <div class="metrics-container" style="grid-template-columns: 1fr;">
+            <div class="metric-card">
+                <div class="metric-label">Ukuran Asli Dokumen</div>
+                <div class="metric-value">{size_awal_off:.2f} KB</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        if st.button("🚀 Mulai Optimasi Dokumen Office", key="btn_office", use_container_width=True):
-            with st.spinner("Sedang mengoptimasi dan mengompres dokumen..."):
+        img_q = st.slider("Kualitas Gambar di Dalam Slide / Dokumen (%)", 20, 90, 60)
+        
+        if st.button("🚀 Mulai Kompres Dokumen Office", use_container_width=True):
+            with st.spinner("Mengompres media dan memadatkan dokumen..."):
                 res_off_bytes = compress_office_file(file_office.getvalue(), image_quality=img_q)
                 size_akhir_off = len(res_off_bytes) / 1024
                 hemat_off = ((size_awal_off - size_akhir_off) / size_awal_off) * 100 if size_awal_off > 0 else 0
                 
-                st.success(f"Ukuran Baru: **{size_akhir_off:.2f} KB** (Hemat {hemat_off:.1f}%)")
+                st.markdown(f"""
+                <div class="metrics-container" style="grid-template-columns: 1fr 1fr; margin-top: 1rem;">
+                    <div class="metric-card">
+                        <div class="metric-label">Ukuran Asli</div>
+                        <div class="metric-value">{size_awal_off:.1f} KB</div>
+                    </div>
+                    <div class="metric-card highlight">
+                        <div class="metric-label">Ukuran Baru</div>
+                        <div class="metric-value">{size_akhir_off:.1f} KB</div>
+                        <span class="badge-hemat">Hemat {hemat_off:.1f}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 st.download_button(
-                    label=f"⬇️ Download File Hasil Optimasi ({size_akhir_off:.1f} KB)",
+                    label=f"⬇️ Download File ({size_akhir_off:.1f} KB)",
                     data=res_off_bytes,
                     file_name=f"optimized_{file_office.name}",
                     mime="application/octet-stream",
