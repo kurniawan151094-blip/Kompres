@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (HAMBURGER ASLI AKTIF & RESPONTIF) =================
+# ================= CUSTOM CSS (WARNA SENADA, MODERN & RESPONSIF) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -23,14 +23,14 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* 1. HEADER DIBUAT TRANSPARAN TANPA MERUSAK STRUKTUR TOMBOL */
+    /* 1. HEADER TRANSPARAN */
     header[data-testid="stHeader"] {
         background: transparent !important;
         box-shadow: none !important;
         border: none !important;
     }
 
-    /* Sembunyikan HANYA tombol Deploy, Titik Tiga Kanan, dan Status Running */
+    /* Sembunyikan elemen bawaan Streamlit yang tidak diperlukan */
     [data-testid="stToolbarActions"],
     [data-testid="stStatusWidget"],
     .stDeployButton,
@@ -40,7 +40,7 @@ st.markdown("""
         visibility: hidden !important;
     }
 
-    /* 2. TOMBOL HAMBURGER ASLI (>>) DIBUAT BESAR, MENCOLOK & SELALU AKTIF */
+    /* 2. TOMBOL HAMBURGER ASLI (>>) BESAR & SELALU AKTIF */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         display: flex !important;
@@ -75,7 +75,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6) !important;
     }
 
-    /* IKON >> PUTIH TEGAS */
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
         display: block !important;
@@ -87,7 +86,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. POSISI KONTEN HALAMAN NAIK KE ATAS */
+    /* 3. LAYOUT KONTEN */
     .main .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
@@ -96,7 +95,6 @@ st.markdown("""
         max-width: 680px;
     }
 
-    /* 4. TOMBOL MENU DALAM SIDEBAR */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -107,7 +105,7 @@ st.markdown("""
         justify-content: flex-start !important;
     }
 
-    /* ================= 5. DESAIN JUDUL BERSENI ================= */
+    /* 4. DESAIN JUDUL BERSENI */
     .brand-hero {
         position: relative;
         text-align: center;
@@ -218,7 +216,7 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 6. KARTU METRIK TOTAL */
+    /* 5. METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -265,7 +263,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 7. TOMBOL DOWNLOAD PRO */
+    /* 6. TOMBOL DOWNLOAD BESAR (ZIP) */
     [data-testid="stDownloadButton"] {
         margin-top: 8px;
         margin-bottom: 12px;
@@ -290,11 +288,43 @@ st.markdown("""
         box-shadow: 0 10px 28px rgba(124, 58, 237, 0.55) !important;
         color: #FFFFFF !important;
     }
+
+    /* 7. TOMBOL UNDUH SATUAN DI DALAM EXPANDER (WARNA SENADA) */
+    div[data-testid="stExpander"] [data-testid="stDownloadButton"] > button {
+        background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
+        color: #FFFFFF !important;
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        padding: 0.45rem 0.9rem !important;
+        border-radius: 10px !important;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3) !important;
+        margin: 0 !important;
+    }
+    div[data-testid="stExpander"] [data-testid="stDownloadButton"] > button:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.45) !important;
+    }
+
+    /* 8. PROGRESS BAR DENGAN WARNA SENADA (CYBER GRADIENT) */
+    [data-testid="stProgress"] > div > div > div > div {
+        background: linear-gradient(90deg, #0284C7 0%, #6366F1 50%, #EC4899 100%) !important;
+        border-radius: 999px !important;
+    }
+    [data-testid="stProgress"] > div > div {
+        background-color: rgba(99, 102, 241, 0.12) !important;
+        border-radius: 999px !important;
+    }
+    [data-testid="stProgress"] p {
+        font-weight: 700 !important;
+        color: #4F46E5 !important;
+        font-size: 0.84rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ================= HELPER FUNCTIONS =================
+# ================= HELPER UKURAN FILE =================
 def format_size(size_in_bytes):
     if size_in_bytes < 1024:
         return f"{size_in_bytes} B"
@@ -303,15 +333,36 @@ def format_size(size_in_bytes):
         return f"{kb / 1024:.2f} MB"
     return f"{kb:.2f} KB"
 
-def show_download_loading_bar(file_type="berkas"):
+
+# ================= VISUAL LOADING BAR SENADA & NOTIFIKASI =================
+def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
     loading_box = st.empty()
-    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan paket {file_type}...")
-    for pct, msg in [(35, "📦 Memadatkan arsip bundle..."), (80, "⚡ Mengemas hasil kompresi..."), (100, "✅ Berkas siap!")]:
-        time.sleep(0.06)
+    nama_label = "Bundle ZIP" if is_bundle else (f"'{file_name}'" if file_name else "Berkas")
+    
+    stages = [
+        (25, f"⚡ Menyiapkan {nama_label}..."),
+        (60, f"📦 Memadatkan & mengemas data..."),
+        (90, f"🚀 Mentransfer ke perangkat..."),
+        (100, f"✅ Berhasil disiapkan!")
+    ]
+    
+    prog_bar = loading_box.progress(0, text=f"⚡ Menyiapkan {nama_label}...")
+    for pct, msg in stages:
+        time.sleep(0.05)
         prog_bar.progress(pct, text=msg)
     time.sleep(0.15)
     loading_box.empty()
-    st.toast(f"🎉 Paket {file_type} berhasil diunduh!", icon="📥")
+    
+    # Notifikasi presisi sesuai permintaan pengguna
+    if kategori == "gambar":
+        teks_notif = "Gambar berhasil diunduh"
+    elif kategori in ("pdf", "office"):
+        teks_notif = "Dokumen berhasil diunduh"
+    else:
+        teks_notif = "File berhasil diunduh"
+        
+    pesan_final = f"🎉 {teks_notif}!"
+    st.toast(pesan_final, icon="✅")
 
 
 # ================= STATE NAVIGASI =================
@@ -321,7 +372,6 @@ if "active_menu" not in st.session_state:
 if "close_sidebar_trigger" not in st.session_state:
     st.session_state.close_sidebar_trigger = False
 
-# Otomatis menutup sidebar saat salah satu menu di dalam sidebar diklik
 if st.session_state.close_sidebar_trigger:
     st.session_state.close_sidebar_trigger = False
     components.html(f"""
@@ -599,6 +649,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
+        # Tombol Download ZIP
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -608,8 +659,9 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
             key="btn_download_zip_img"
         )
         if btn_zip:
-            show_download_loading_bar("Bundle Gambar")
+            show_download_loading(kategori="gambar", is_bundle=True)
 
+        # Rincian Unduh Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -618,7 +670,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                     st.write(f"**{item['name']}**")
                     st.caption(f"{format_size(item['awal'])} ➔ **{format_size(item['akhir'])}** (Hemat {item_hemat:.1f}%) | {item['extra']}")
                 with c2:
-                    st.download_button(
+                    btn_single = st.download_button(
                         label="⬇️ Unduh",
                         data=item["bytes"],
                         file_name=item["out_name"],
@@ -626,6 +678,8 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                         key=f"dl_single_img_{i}",
                         use_container_width=True
                     )
+                    if btn_single:
+                        show_download_loading(kategori="gambar", is_bundle=False, file_name=item["name"])
 
 
 # ================= 2. MENU KOMPRES PDF (BATCH) =================
@@ -704,7 +758,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
             key="btn_download_zip_pdf"
         )
         if btn_zip_pdf:
-            show_download_loading_bar("Bundle PDF")
+            show_download_loading(kategori="pdf", is_bundle=True)
 
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
@@ -714,7 +768,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                     st.write(f"**{item['name']}**")
                     st.caption(f"{format_size(item['awal'])} ➔ **{format_size(item['akhir'])}** (Hemat {item_hemat:.1f}%) | {item['extra']}")
                 with c2:
-                    st.download_button(
+                    btn_single_pdf = st.download_button(
                         label="⬇️ Unduh",
                         data=item["bytes"],
                         file_name=item["out_name"],
@@ -722,6 +776,8 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                         key=f"dl_single_pdf_{i}",
                         use_container_width=True
                     )
+                    if btn_single_pdf:
+                        show_download_loading(kategori="pdf", is_bundle=False, file_name=item["name"])
 
 
 # ================= 3. MENU KOMPRES OFFICE (BATCH) =================
@@ -799,7 +855,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
             key="btn_download_zip_off"
         )
         if btn_zip_off:
-            show_download_loading_bar("Bundle Dokumen Office")
+            show_download_loading(kategori="office", is_bundle=True)
 
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
@@ -809,7 +865,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                     st.write(f"**{item['name']}**")
                     st.caption(f"{format_size(item['awal'])} ➔ **{format_size(item['akhir'])}** (Hemat {item_hemat:.1f}%)")
                 with c2:
-                    st.download_button(
+                    btn_single_off = st.download_button(
                         label="⬇️ Unduh",
                         data=item["bytes"],
                         file_name=item["out_name"],
@@ -817,3 +873,5 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                         key=f"dl_single_off_{i}",
                         use_container_width=True
                     )
+                    if btn_single_off:
+                        show_download_loading(kategori="office", is_bundle=False, file_name=item["name"])
