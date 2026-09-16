@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (RESPONSIF, ARTISTIC & HAMBURGER ON) =================
+# ================= CUSTOM CSS (TOMBOL >> AKTIF, SHARE/MENU HILANG) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -23,32 +23,24 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* 1. HEADER TRANSPARAN (TIDAK MEMATIKAN HAMBURGER) */
+    /* 1. HEADER DIBUAT TRANSPARAN & TIDAK MENGHALANGI KLIK */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        height: 0px !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        pointer-events: none !important;
+        height: 60px !important;
         z-index: 99999 !important;
     }
-    
-    /* Sembunyikan ornamen kanan / toolbar bawaan Streamlit, BUKAN hamburgernya */
-    header[data-testid="stHeader"] [data-testid="stToolbar"],
-    header[data-testid="stHeader"] [data-testid="stDecoration"],
-    header[data-testid="stHeader"] [data-testid="stStatusWidget"] {
+
+    /* 2. SEMBUNYIKAN MENU BAWAAN STREAMLIT (SHARE, TITIK TIGA, DEKORASI) */
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    #MainMenu {
         display: none !important;
+        visibility: hidden !important;
     }
 
-    /* Jarak konten atas mepet tapi tidak nabrak tombol */
-    .main .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 2rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-        max-width: 680px;
-    }
-
-    /* 2. TOMBOL HAMBURGER BESAR, MENCOLOK & DIPAKSA AKTIF */
+    /* 3. TOMBOL '>>' (EXPAND SIDEBAR) DI KIRI ATAS DIPULIHKAN & MENCOLOK */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
@@ -58,38 +50,58 @@ st.markdown("""
         top: 12px !important;
         left: 12px !important;
         z-index: 9999999 !important;
+        pointer-events: auto !important;
     }
 
     [data-testid="collapsedControl"] button,
-    [data-testid="stSidebarCollapsedControl"] button {
-        width: 50px !important;
-        height: 50px !important;
+    [data-testid="stSidebarCollapsedControl"] button,
+    button[aria-label="Expand sidebar"],
+    button[aria-label="Open sidebar"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 48px !important;
+        height: 48px !important;
         background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
         border-radius: 14px !important;
         border: none !important;
         box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45) !important;
-        display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
+        pointer-events: auto !important;
         transition: transform 0.2s ease !important;
     }
 
     [data-testid="collapsedControl"] button:hover,
     [data-testid="stSidebarCollapsedControl"] button:hover {
-        transform: scale(1.05) !important;
+        transform: scale(1.06) !important;
     }
 
+    /* IKON >> PUTIH TEGAS */
     [data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg {
-        width: 28px !important;
-        height: 28px !important;
+    [data-testid="stSidebarCollapsedControl"] svg,
+    button[aria-label="Expand sidebar"] svg,
+    button[aria-label="Open sidebar"] svg {
+        display: block !important;
+        visibility: visible !important;
+        width: 26px !important;
+        height: 26px !important;
         stroke: #ffffff !important;
         fill: #ffffff !important;
         color: #ffffff !important;
     }
 
-    /* 3. TOMBOL SIDEBAR */
+    /* 4. POSISI KONTEN HALAMAN NAIK KE ATAS */
+    .main .block-container {
+        padding-top: 0.8rem !important;
+        padding-bottom: 2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 680px;
+    }
+
+    /* 5. TOMBOL MENU DALAM SIDEBAR */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -100,7 +112,7 @@ st.markdown("""
         justify-content: flex-start !important;
     }
 
-    /* ================= 4. DESAIN JUDUL BERSENI & MENCOLOK ================= */
+    /* ================= 6. DESAIN JUDUL BERSENI ================= */
     .brand-hero {
         position: relative;
         text-align: center;
@@ -109,7 +121,6 @@ st.markdown("""
         margin-bottom: 0.8rem;
     }
 
-    /* Aura Cahaya di Belakang Judul */
     .brand-hero::before {
         content: "";
         position: absolute;
@@ -124,7 +135,6 @@ st.markdown("""
         pointer-events: none;
     }
 
-    /* Tagline Kapsul Atas */
     .brand-pill {
         position: relative;
         z-index: 1;
@@ -144,7 +154,6 @@ st.markdown("""
         backdrop-filter: blur(6px);
     }
 
-    /* Tipografi Utama "CompressPro" */
     .brand-title {
         position: relative;
         z-index: 1;
@@ -174,7 +183,6 @@ st.markdown("""
         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
     }
 
-    /* Garis Seni Artistik */
     .brand-divider {
         position: relative;
         z-index: 1;
@@ -185,7 +193,6 @@ st.markdown("""
         margin: 6px auto 9px auto;
     }
 
-    /* Subtitle dengan Indikator Status */
     .brand-sub {
         position: relative;
         z-index: 1;
@@ -201,7 +208,6 @@ st.markdown("""
         border: 1px solid rgba(148, 163, 184, 0.2);
     }
 
-    /* Animasi Titik Berkedip (Pulsing Dot) */
     .pulse-dot {
         width: 7px;
         height: 7px;
@@ -217,7 +223,7 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 5. KARTU METRIK TOTAL */
+    /* 7. KARTU METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -264,7 +270,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 6. TOMBOL DOWNLOAD PRO */
+    /* 8. TOMBOL DOWNLOAD PRO */
     [data-testid="stDownloadButton"] {
         margin-top: 8px;
         margin-bottom: 12px;
@@ -359,7 +365,7 @@ with st.sidebar:
 # ================= HEADER UTAMA =================
 st.markdown(f"""
 <div class="brand-hero">
-    <div class="brand-pill">⚡ NEXT-GEN COMPRESSION</div><br>
+    <div class="brand-pill">⚡ K-ONE SYSTEMS COMPRESSION</div><br>
     <div class="brand-title">Compress<span class="pro-badge">PRO</span></div>
     <div class="brand-divider"></div>
     <div class="brand-sub">
