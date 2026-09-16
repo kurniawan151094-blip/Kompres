@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (WARNA SENADA, ARTISTIC MENU & TEMA) =================
+# ================= CUSTOM CSS (SPINNER BOLA MELAYANG & TEMA) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -84,7 +84,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. LAYOUT KONTEN UTAMA */
+    /* 3. LAYOUT KONTEN */
     .main .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
@@ -121,7 +121,6 @@ st.markdown("""
         margin-bottom: 1rem;
     }
 
-    /* KOTAK TOMBOL MENU DI SIDEBAR */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         padding: 0.95rem 1.2rem !important;
@@ -134,7 +133,6 @@ st.markdown("""
         background: rgba(15, 23, 42, 0.03) !important;
     }
 
-    /* TEKS MENU BERWARNA GRADIEN COMPRESSPRO */
     [data-testid="stSidebar"] .stButton > button p,
     [data-testid="stSidebar"] .stButton > button span,
     [data-testid="stSidebar"] .stButton > button div {
@@ -146,7 +144,6 @@ st.markdown("""
         filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3)) !important;
     }
 
-    /* KETIKA TOMBOL MENU AKTIF (DIPILIH) */
     [data-testid="stSidebar"] .stButton > button[kind="primary"],
     [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
         background: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, rgba(99, 102, 241, 0.18) 50%, rgba(236, 72, 153, 0.15) 100%) !important;
@@ -155,7 +152,6 @@ st.markdown("""
         transform: translateX(4px) !important;
     }
 
-    /* KETIKA TOMBOL MENU DI-HOVER */
     [data-testid="stSidebar"] .stButton > button:hover {
         transform: translateX(4px) scale(1.02) !important;
         border-color: #EC4899 !important;
@@ -515,7 +511,7 @@ if st.session_state.close_sidebar_trigger:
     """, height=0, width=0)
 
 
-# ================= MENU SIDEBAR (DESAIN SENADA COMPRESSPRO) =================
+# ================= MENU SIDEBAR =================
 with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand-pill">⚡ PILIH NAVIGASI</div>
@@ -778,6 +774,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
+        # Tombol Download ZIP
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -789,6 +786,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading(kategori="gambar", is_bundle=True)
 
+        # Rincian Unduh Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -876,8 +874,9 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_pdf = zip_buf_pdf.getvalue()
 
+        # PERBAIKAN: Menggunakan zip_bytes_pdf (bukan zip_bytes)
         btn_zip_pdf = st.download_button(
-            label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes))})",
+            label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes_pdf))})",
             data=zip_bytes_pdf,
             file_name="CompressPro_PDF_Bundle.zip",
             mime="application/zip",
@@ -887,6 +886,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading(kategori="pdf", is_bundle=True)
 
+        # Rincian Unduh Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -973,6 +973,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_off = zip_buf_off.getvalue()
 
+        # Tombol Download ZIP
         btn_zip_off = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_off)} DOKUMEN) - ZIP ({format_size(len(zip_bytes_off))})",
             data=zip_bytes_off,
@@ -984,6 +985,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading(kategori="office", is_bundle=True)
 
+        # Rincian Unduh Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
