@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (ARTISTIC, RESPONSIVE, DUAL-THEME) =================
+# ================= CUSTOM CSS (RESPONSIF, ARTISTIC & HAMBURGER ON) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -23,40 +23,61 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* 1. NAIKKAN POSISI KE ATAS SECARA MAKSIMAL */
+    /* 1. HEADER TRANSPARAN (TIDAK MEMATIKAN HAMBURGER) */
     header[data-testid="stHeader"] {
-        display: none !important;
+        background: transparent !important;
         height: 0px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 99999 !important;
     }
+    
+    /* Sembunyikan ornamen kanan / toolbar bawaan Streamlit, BUKAN hamburgernya */
+    header[data-testid="stHeader"] [data-testid="stToolbar"],
+    header[data-testid="stHeader"] [data-testid="stDecoration"],
+    header[data-testid="stHeader"] [data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+
+    /* Jarak konten atas mepet tapi tidak nabrak tombol */
     .main .block-container {
-        padding-top: 0.3rem !important;
+        padding-top: 0.5rem !important;
         padding-bottom: 2rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 680px;
     }
 
-    /* 2. TOMBOL HAMBURGER BESAR */
+    /* 2. TOMBOL HAMBURGER BESAR, MENCOLOK & DIPAKSA AKTIF */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
-        z-index: 999999 !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999999 !important;
     }
 
     [data-testid="collapsedControl"] button,
     [data-testid="stSidebarCollapsedControl"] button {
-        width: 48px !important;
-        height: 48px !important;
+        width: 50px !important;
+        height: 50px !important;
         background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
         border-radius: 14px !important;
         border: none !important;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        cursor: pointer !important;
+        transition: transform 0.2s ease !important;
+    }
+
+    [data-testid="collapsedControl"] button:hover,
+    [data-testid="stSidebarCollapsedControl"] button:hover {
+        transform: scale(1.05) !important;
     }
 
     [data-testid="collapsedControl"] svg,
@@ -68,7 +89,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. SIDEBAR BUTTONS */
+    /* 3. TOMBOL SIDEBAR */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -83,12 +104,12 @@ st.markdown("""
     .brand-hero {
         position: relative;
         text-align: center;
-        padding: 0.4rem 0 0.8rem 0;
-        margin-top: 0.1rem;
+        padding: 0.2rem 0 0.8rem 0;
+        margin-top: 0rem;
         margin-bottom: 0.8rem;
     }
 
-    /* Aura Cahaya di Belakang Judul (Bekerja di Light & Dark Mode) */
+    /* Aura Cahaya di Belakang Judul */
     .brand-hero::before {
         content: "";
         position: absolute;
@@ -335,7 +356,7 @@ with st.sidebar:
             st.rerun()
 
 
-# ================= HEADER UTAMA (ARTISTIC HERO HEADER) =================
+# ================= HEADER UTAMA =================
 st.markdown(f"""
 <div class="brand-hero">
     <div class="brand-pill">⚡ NEXT-GEN COMPRESSION</div><br>
