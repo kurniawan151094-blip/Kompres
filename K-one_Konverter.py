@@ -14,45 +14,46 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (RESPONSIF & TOMBOL MODERN) =================
+# ================= CUSTOM CSS (ARTISTIC, RESPONSIVE, DUAL-THEME) =================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
+    /* 1. NAIKKAN POSISI KE ATAS SECARA MAKSIMAL */
     header[data-testid="stHeader"] {
-        background: transparent !important;
+        display: none !important;
         height: 0px !important;
     }
     .main .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0.3rem !important;
         padding-bottom: 2rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 680px;
     }
 
-    /* TOMBOL HAMBURGER BESAR */
+    /* 2. TOMBOL HAMBURGER BESAR */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
         display: flex !important;
         position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
+        top: 10px !important;
+        left: 10px !important;
         z-index: 999999 !important;
     }
 
     [data-testid="collapsedControl"] button,
     [data-testid="stSidebarCollapsedControl"] button {
-        width: 52px !important;
-        height: 52px !important;
-        background-color: #2563EB !important;
+        width: 48px !important;
+        height: 48px !important;
+        background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
         border-radius: 14px !important;
         border: none !important;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -60,14 +61,14 @@ st.markdown("""
 
     [data-testid="collapsedControl"] svg,
     [data-testid="stSidebarCollapsedControl"] svg {
-        width: 30px !important;
-        height: 30px !important;
+        width: 28px !important;
+        height: 28px !important;
         stroke: #ffffff !important;
         fill: #ffffff !important;
         color: #ffffff !important;
     }
 
-    /* TOMBOL SIDEBAR */
+    /* 3. SIDEBAR BUTTONS */
     [data-testid="stSidebar"] .stButton > button {
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -78,33 +79,129 @@ st.markdown("""
         justify-content: flex-start !important;
     }
 
-    /* HEADER */
-    .brand-header {
+    /* ================= 4. DESAIN JUDUL BERSENI & MENCOLOK ================= */
+    .brand-hero {
+        position: relative;
         text-align: center;
-        margin-top: 0.2rem;
-        margin-bottom: 1.2rem;
-    }
-    .brand-title {
-        font-size: 1.85rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #2563EB, #7C3AED);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0;
-    }
-    .brand-sub {
-        font-size: 0.92rem;
-        color: #64748B;
-        font-weight: 600;
-        margin-top: 4px;
+        padding: 0.4rem 0 0.8rem 0;
+        margin-top: 0.1rem;
+        margin-bottom: 0.8rem;
     }
 
-    /* KARTU METRIK TOTAL */
+    /* Aura Cahaya di Belakang Judul (Bekerja di Light & Dark Mode) */
+    .brand-hero::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        height: 80px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(236, 72, 153, 0.15) 50%, transparent 75%);
+        filter: blur(24px);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Tagline Kapsul Atas */
+    .brand-pill {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 12px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.28);
+        color: #6366F1;
+        margin-bottom: 6px;
+        backdrop-filter: blur(6px);
+    }
+
+    /* Tipografi Utama "CompressPro" */
+    .brand-title {
+        position: relative;
+        z-index: 1;
+        font-size: 2.35rem;
+        font-weight: 900;
+        letter-spacing: -0.8px;
+        line-height: 1.1;
+        margin: 0;
+        display: inline-block;
+        background: linear-gradient(125deg, #0284C7 0%, #6366F1 45%, #EC4899 90%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 4px 14px rgba(99, 102, 241, 0.35));
+    }
+
+    .brand-title .pro-badge {
+        font-size: 0.95rem;
+        vertical-align: super;
+        margin-left: 4px;
+        padding: 2px 7px;
+        border-radius: 7px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #EC4899, #8B5CF6);
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+    }
+
+    /* Garis Seni Artistik */
+    .brand-divider {
+        position: relative;
+        z-index: 1;
+        width: 48px;
+        height: 4px;
+        background: linear-gradient(90deg, #0284C7, #6366F1, #EC4899);
+        border-radius: 99px;
+        margin: 6px auto 9px auto;
+    }
+
+    /* Subtitle dengan Indikator Status */
+    .brand-sub {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 0.86rem;
+        color: #64748B;
+        font-weight: 600;
+        background: rgba(148, 163, 184, 0.1);
+        padding: 4px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    /* Animasi Titik Berkedip (Pulsing Dot) */
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #10B981;
+        animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.9); opacity: 0.7; }
+        50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #10B981; }
+        100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    /* 5. KARTU METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
-        margin: 1.2rem 0;
+        margin: 1.1rem 0;
     }
     .metric-card {
         background: #F8FAFC;
@@ -146,18 +243,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* INFO BOX */
-    .info-tip {
-        background: #F8FAFC;
-        border-left: 4px solid #3B82F6;
-        padding: 10px 14px;
-        border-radius: 8px;
-        font-size: 0.83rem;
-        color: #475569;
-        margin: 1rem 0;
-    }
-
-    /* TOMBOL UNDUH MENCOLOK & ELEGAN */
+    /* 6. TOMBOL DOWNLOAD PRO */
     [data-testid="stDownloadButton"] {
         margin-top: 8px;
         margin-bottom: 12px;
@@ -181,18 +267,6 @@ st.markdown("""
         transform: translateY(-2px) !important;
         box-shadow: 0 10px 28px rgba(124, 58, 237, 0.55) !important;
         color: #FFFFFF !important;
-    }
-
-    /* KARTU DAFTAR ITEM INDIVIDU */
-    .file-item-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 10px;
-        padding: 10px 14px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -260,11 +334,17 @@ with st.sidebar:
             st.session_state.close_sidebar_trigger = True
             st.rerun()
 
-# ================= HEADER UTAMA =================
+
+# ================= HEADER UTAMA (ARTISTIC HERO HEADER) =================
 st.markdown(f"""
-<div class="brand-header">
-    <h1 class="brand-title">⚡ CompressPro</h1>
-    <div class="brand-sub">{st.session_state.active_menu} (Batch Mode)</div>
+<div class="brand-hero">
+    <div class="brand-pill">⚡ NEXT-GEN COMPRESSION</div><br>
+    <div class="brand-title">Compress<span class="pro-badge">PRO</span></div>
+    <div class="brand-divider"></div>
+    <div class="brand-sub">
+        <span class="pulse-dot"></span>
+        <span>{st.session_state.active_menu} • Multi-File Ready</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -293,7 +373,6 @@ def compress_single_image(raw_bytes, quality=70, scale=100):
         img_proses.save(out_img, format="JPEG", quality=quality, optimize=True)
         res_bytes = out_img.getvalue()
         
-        # Jamin tidak membengkak
         if len(res_bytes) > bytes_asli and scale == 100:
             res_bytes = raw_bytes
             
@@ -447,7 +526,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         with col2:
             scale = st.slider("Skala Resolusi (%)", 10, 100, 100)
 
-        # Proses batch
         total_awal = 0
         total_akhir = 0
         list_hasil = []
@@ -474,7 +552,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
 
         total_hemat = ((total_awal - total_akhir) / total_awal) * 100 if total_awal > total_akhir else 0.0
 
-        # Kartu Total
         st.markdown(f"""
         <div class="metrics-container">
             <div class="metric-card">
@@ -493,14 +570,12 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         </div>
         """, unsafe_allow_html=True)
 
-        # Buat ZIP Bundle di Memori
         zip_buf = io.BytesIO()
         with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as z:
             for item in list_hasil:
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
-        # Tombol Download Semua (ZIP)
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -512,7 +587,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading_bar("Bundle Gambar")
 
-        # Rincian File Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -592,7 +666,6 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         </div>
         """, unsafe_allow_html=True)
 
-        # Buat ZIP Bundle
         zip_buf_pdf = io.BytesIO()
         with zipfile.ZipFile(zip_buf_pdf, 'w', zipfile.ZIP_DEFLATED) as z:
             for item in list_hasil_pdf:
@@ -610,7 +683,6 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading_bar("Bundle PDF")
 
-        # Rincian File Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -689,7 +761,6 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         </div>
         """, unsafe_allow_html=True)
 
-        # Buat ZIP Bundle
         zip_buf_off = io.BytesIO()
         with zipfile.ZipFile(zip_buf_off, 'w', zipfile.ZIP_DEFLATED) as z:
             for item in list_hasil_off:
@@ -707,7 +778,6 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading_bar("Bundle Dokumen Office")
 
-        # Rincian File Satuan
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
