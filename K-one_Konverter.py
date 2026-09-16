@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (TOMBOL >> AKTIF, SHARE/MENU HILANG) =================
+# ================= CUSTOM CSS (TOMBOL MENU SEJAJAR DENGAN JUDUL) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -23,101 +23,75 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    /* 1. HEADER DIBUAT TRANSPARAN & TIDAK MENGHALANGI KLIK */
+    /* 1. BERSIHKAN HEADER BAWAAN STREAMLIT AGAR TIDAK MENGHALANGI */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        pointer-events: none !important;
-        height: 60px !important;
-        z-index: 99999 !important;
+        height: 0px !important;
     }
-
-    /* 2. SEMBUNYIKAN MENU BAWAAN STREAMLIT (SHARE, TITIK TIGA, DEKORASI) */
+    
     [data-testid="stToolbar"],
     [data-testid="stDecoration"],
     [data-testid="stStatusWidget"],
     #MainMenu {
         display: none !important;
-        visibility: hidden !important;
     }
 
-    /* 3. TOMBOL '>>' (EXPAND SIDEBAR) DI KIRI ATAS DIPULIHKAN & MENCOLOK */
+    /* Sembunyikan kontrol bawaan yang suka hilang/bentrok */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
-        z-index: 9999999 !important;
-        pointer-events: auto !important;
+        display: none !important;
     }
 
-    [data-testid="collapsedControl"] button,
-    [data-testid="stSidebarCollapsedControl"] button,
-    button[aria-label="Expand sidebar"],
-    button[aria-label="Open sidebar"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        width: 48px !important;
-        height: 48px !important;
-        background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
-        border-radius: 14px !important;
-        border: none !important;
-        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45) !important;
-        align-items: center !important;
-        justify-content: center !important;
-        cursor: pointer !important;
-        pointer-events: auto !important;
-        transition: transform 0.2s ease !important;
-    }
-
-    [data-testid="collapsedControl"] button:hover,
-    [data-testid="stSidebarCollapsedControl"] button:hover {
-        transform: scale(1.06) !important;
-    }
-
-    /* IKON >> PUTIH TEGAS */
-    [data-testid="collapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] svg,
-    button[aria-label="Expand sidebar"] svg,
-    button[aria-label="Open sidebar"] svg {
-        display: block !important;
-        visibility: visible !important;
-        width: 26px !important;
-        height: 26px !important;
-        stroke: #ffffff !important;
-        fill: #ffffff !important;
-        color: #ffffff !important;
-    }
-
-    /* 4. POSISI KONTEN HALAMAN NAIK KE ATAS */
+    /* Jarak atas pas & rapi */
     .main .block-container {
-        padding-top: 0.8rem !important;
+        padding-top: 1.2rem !important;
         padding-bottom: 2rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 680px;
     }
 
-    /* 5. TOMBOL MENU DALAM SIDEBAR */
-    [data-testid="stSidebar"] .stButton > button {
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-        padding: 0.95rem 1.2rem !important;
-        margin-bottom: 0.7rem !important;
-        border-radius: 12px !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
+    /* 2. BARIS HEADER SEJAJAR (TOMBOL MENU + NEXT-GEN) */
+    .header-top-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 6px;
     }
 
-    /* ================= 6. DESAIN JUDUL BERSENI ================= */
+    /* TOMBOL MENU >> KHUSUS DI SAMPING NEXT-GEN */
+    .custom-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: linear-gradient(135deg, #2563EB, #4F46E5);
+        color: #FFFFFF !important;
+        border: none;
+        border-radius: 999px;
+        padding: 5px 14px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .custom-menu-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+    }
+    .custom-menu-btn:active {
+        transform: scale(0.96);
+    }
+
+    /* ================= 3. DESAIN JUDUL BERSENI ================= */
     .brand-hero {
         position: relative;
         text-align: center;
         padding: 0.2rem 0 0.8rem 0;
-        margin-top: 0rem;
         margin-bottom: 0.8rem;
     }
 
@@ -127,7 +101,7 @@ st.markdown("""
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 260px;
+        width: 280px;
         height: 80px;
         background: radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(236, 72, 153, 0.15) 50%, transparent 75%);
         filter: blur(24px);
@@ -141,8 +115,8 @@ st.markdown("""
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 3px 12px;
-        font-size: 0.72rem;
+        padding: 5px 14px;
+        font-size: 0.75rem;
         font-weight: 800;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -150,7 +124,6 @@ st.markdown("""
         background: rgba(99, 102, 241, 0.12);
         border: 1px solid rgba(99, 102, 241, 0.28);
         color: #6366F1;
-        margin-bottom: 6px;
         backdrop-filter: blur(6px);
     }
 
@@ -160,8 +133,8 @@ st.markdown("""
         font-size: 2.35rem;
         font-weight: 900;
         letter-spacing: -0.8px;
-        line-height: 1.1;
-        margin: 0;
+        line-height: 1.15;
+        margin: 4px 0 0 0;
         display: inline-block;
         background: linear-gradient(125deg, #0284C7 0%, #6366F1 45%, #EC4899 90%);
         -webkit-background-clip: text;
@@ -223,7 +196,18 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 7. KARTU METRIK TOTAL */
+    /* 4. TOMBOL SIDEBAR */
+    [data-testid="stSidebar"] .stButton > button {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        padding: 0.95rem 1.2rem !important;
+        margin-bottom: 0.7rem !important;
+        border-radius: 12px !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+
+    /* 5. METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -270,7 +254,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 8. TOMBOL DOWNLOAD PRO */
+    /* 6. TOMBOL DOWNLOAD */
     [data-testid="stDownloadButton"] {
         margin-top: 8px;
         margin-bottom: 12px;
@@ -326,6 +310,7 @@ if "active_menu" not in st.session_state:
 if "close_sidebar_trigger" not in st.session_state:
     st.session_state.close_sidebar_trigger = False
 
+# Skrip penutup sidebar otomatis saat menu dipilih
 if st.session_state.close_sidebar_trigger:
     st.session_state.close_sidebar_trigger = False
     components.html(f"""
@@ -362,10 +347,43 @@ with st.sidebar:
             st.rerun()
 
 
-# ================= HEADER UTAMA =================
+# ================= HEADER UTAMA (TOMBOL MENU SEJAJAR DENGAN NEXT-GEN) =================
+# Komponen JavaScript untuk membuka sidebar secara instan
+components.html("""
+<script>
+function openSidebar() {
+    try {
+        const parentDoc = window.parent.document;
+        // Cari tombol collapse / trigger bawaan Streamlit
+        const trigger = parentDoc.querySelector('[data-testid="stSidebarCollapseButton"] button') ||
+                        parentDoc.querySelector('button[aria-label="Open sidebar"]') ||
+                        parentDoc.querySelector('button[aria-label="Expand sidebar"]') ||
+                        parentDoc.querySelector('[data-testid="stSidebarCollapsedControl"] button') ||
+                        parentDoc.querySelector('[data-testid="collapsedControl"] button');
+        if (trigger) {
+            trigger.click();
+        } else {
+            // Alternatif: hapus atribut aria-expanded / ubah lebar sidebar langsung
+            const sidebar = parentDoc.querySelector('section[data-testid="stSidebar"]');
+            if (sidebar) sidebar.setAttribute('aria-expanded', 'true');
+        }
+    } catch(e) {
+        console.log(e);
+    }
+}
+window.parent.openCompressProSidebar = openSidebar;
+</script>
+""", height=0, width=0)
+
 st.markdown(f"""
 <div class="brand-hero">
-    <div class="brand-pill">⚡ K-ONE SYSTEMS COMPRESSION</div><br>
+    <div class="header-top-row">
+        <button class="custom-menu-btn" onclick="window.parent.openCompressProSidebar()">
+            <span>☰</span>
+            <span>Menu &gt;&gt;</span>
+        </button>
+        <div class="brand-pill">⚡ NEXT-GEN COMPRESSION</div>
+    </div>
     <div class="brand-title">Compress<span class="pro-badge">PRO</span></div>
     <div class="brand-divider"></div>
     <div class="brand-sub">
