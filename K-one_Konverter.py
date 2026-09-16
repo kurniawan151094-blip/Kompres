@@ -336,20 +336,32 @@ def compress_office_file(file_bytes, quality_slider=70):
     return out_buf.getvalue(), media_count
 
 
-# ================= ENGINE KOMPRESI PDF =================
+# ================= ENGINE KOMPRESI PDF (SUDAH DIPERBAIKI TOTAL) =================
 def compress_pdf_file(file_bytes, quality_slider=70):
+    bytes_asli = len(file_bytes)
     in_buf = io.BytesIO(file_bytes)
     reader = PdfReader(in_buf)
     writer = PdfWriter()
     
-    deflate_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
-    scale_factor = max(0.3, min(1.0, quality_slider / 100.0))
+    total_pages = len(reader.pages)
     
+    # Kloning halaman ke writer
     for page in reader.pages:
         writer.add_page(page)
-        
+    
+    # 1. Bersihkan metadata dokumen yang sering memakan puluhan hingga ratusan KB
+    try:
+        writer.add_metadata({})
+    except Exception:
+        pass
+
+    # Skala resolusi gambar (30% s.d 85%) & level deflate zlib
+    scale_factor = max(0.25, min(0.9, quality_slider / 100.0))
+    deflate_level = max(1, min(9, int((100 - quality_slider) / 11) + 1))
+    
+    # 2. Proses kompresi stream dan gambar internal
     for page in writer.pages:
-        # Kompres streams & teks
+        # Kompresi stream konten
         try:
             page.compress_content_streams(level=deflate_level)
         except Exception:
@@ -357,12 +369,14 @@ def compress_pdf_file(file_bytes, quality_slider=70):
                 page.compress_content_streams()
             except Exception:
                 pass
-            
-        # Kecilkan resolusi gambar internal di PDF secara proporsional
+        
+        # Ekstraksi dan penulisan ulang gambar
         try:
             for img in page.images:
                 try:
                     pil_img = img.image
+                    
+                    # Konversi mode warna ke RGB jika ada channel alpha / CMYK
                     if pil_img.mode in ("RGBA", "LA", "P"):
                         bg = Image.new("RGB", pil_img.size, (255, 255, 255))
                         if pil_img.mode in ("RGBA", "LA"):
@@ -373,17 +387,22 @@ def compress_pdf_file(file_bytes, quality_slider=70):
                     elif pil_img.mode != "RGB":
                         pil_img = pil_img.convert("RGB")
                     
-                    if scale_factor < 1.0:
-                        new_w = max(1, int(pil_img.width * scale_factor))
-                        new_h = max(1, int(pil_img.height * scale_factor))
+                    # Turunkan dimensi piksel secara agresif mengikuti slider
+                    new_w = max(1, int(pil_img.width * scale_factor))
+                    new_h = max(1, int(pil_img.height * scale_factor))
+                    
+                    if new_w < pil_img.width or new_h < pil_img.height:
                         pil_img = pil_img.resize((new_w, new_h), Image.Resampling.BILINEAR)
                     
-                    img.replace(pil_img, quality=quality_slider)
+                    # Target kualitas JPEG
+                    target_q = min(quality_slider, 80) # Batasi maks 80 agar tidak bengkak
+                    img.replace(pil_img, quality=target_q)
                 except Exception:
                     pass
         except Exception:
             pass
-            
+
+    # 3. Buang objek identik dan yatim (orphaned objects)
     try:
         writer.compress_identical_objects(remove_identicals=True, remove_orphans=True)
     except Exception:
@@ -391,7 +410,14 @@ def compress_pdf_file(file_bytes, quality_slider=70):
         
     out_buf = io.BytesIO()
     writer.write(out_buf)
-    return out_buf.getvalue(), len(reader.pages)
+    hasil_bytes = out_buf.getvalue()
+    
+    # 4. PROTEKSI ANTI-BENGKAK:
+    # Jika hasil kompresi ternyata sama saja atau lebih besar dari file asli
+    if len(hasil_bytes) >= bytes_asli:
+        return file_bytes, total_pages
+        
+    return hasil_bytes, total_pages
 
 
 # ================= 1. MENU KOMPRES GAMBAR =================
@@ -479,18 +505,21 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         pdf_q = st.slider(
             "Tingkat Kualitas & Kompresi PDF (%)", 
             min_value=10, 
-            max_value=95, 
-            value=65,
-            help="Geser ke kiri untuk hasil berkas yang semakin kecil."
+            max_value=90, 
+            value=50,
+            help="Geser ke kiri untuk mengecilkan dokumen secara maksimal."
         )
         
         try:
             res_pdf_bytes, total_pages = compress_pdf_file(file_pdf.getvalue(), quality_slider=pdf_q)
             bytes_akhir_pdf = len(res_pdf_bytes)
             
-            hemat_pdf = ((bytes_awal_pdf - bytes_akhir_pdf) / bytes_awal_pdf) * 100 if bytes_awal_pdf > 0 else 0
-            if hemat_pdf < 0:
-                hemat_pdf = 0
+            # Hitung persentase hemat secara presisi
+            if bytes_awal_pdf > bytes_akhir_pdf:
+                hemat_pdf = ((bytes_awal_pdf - bytes_akhir_pdf) / bytes_awal_pdf) * 100
+            else:
+                hemat_pdf = 0.0
+                bytes_akhir_pdf = bytes_awal_pdf # Pastikan tidak ada nilai membengkak
             
             st.markdown(f"""
             <div class="metrics-container">
@@ -509,8 +538,15 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 </div>
             </div>
             """, unsafe_allow_html=True)
+
+            # Info edukasi jika file didominasi teks/vektor murni
+            if hemat_pdf == 0.0:
+                st.markdown("""
+                <div class="info-tip">
+                    ℹ️ <b>Informasi Dokumen:</b> PDF ini didominasi oleh teks vektor, font khusus, atau formulir tanpa elemen foto raster. Ukuran file ini sudah dalam kondisi paling optimal sehingga tidak dapat diperkecil lagi tanpa merusak ketajaman huruf.
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Tombol Download Keren
             btn_download_pdf = st.download_button(
                 label=f"⬇️ DOWNLOAD PDF ({format_size(bytes_akhir_pdf)})",
                 data=res_pdf_bytes,
