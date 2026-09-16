@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (SPINNER BOLA MELAYANG & TEMA) =================
+# ================= CUSTOM CSS (WARNA SENADA, ARTISTIC MENU & TEMA) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -84,7 +84,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. LAYOUT KONTEN */
+    /* 3. LAYOUT KONTEN UTAMA */
     .main .block-container {
         padding-top: 1rem !important;
         padding-bottom: 2rem !important;
@@ -93,17 +93,76 @@ st.markdown("""
         max-width: 680px;
     }
 
-    [data-testid="stSidebar"] .stButton > button {
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-        padding: 0.95rem 1.2rem !important;
-        margin-bottom: 0.7rem !important;
-        border-radius: 12px !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
+    /* ================= 4. GAYA MENU SIDEBAR SEPERTI COMPRESSPRO ================= */
+    .sidebar-brand-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.12);
+        border: 1px solid rgba(99, 102, 241, 0.28);
+        color: #6366F1;
+        margin-bottom: 4px;
     }
 
-    /* 4. JUDUL BERSENI */
+    .sidebar-brand-title {
+        font-size: 1.45rem;
+        font-weight: 900;
+        letter-spacing: -0.5px;
+        background: linear-gradient(125deg, #0284C7 0%, #6366F1 45%, #EC4899 90%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 2px 10px rgba(99, 102, 241, 0.3));
+        margin-bottom: 1rem;
+    }
+
+    /* KOTAK TOMBOL MENU DI SIDEBAR */
+    [data-testid="stSidebar"] .stButton > button {
+        font-size: 1.05rem !important;
+        padding: 0.95rem 1.2rem !important;
+        margin-bottom: 0.8rem !important;
+        border-radius: 14px !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: 1.5px solid rgba(99, 102, 241, 0.22) !important;
+        background: rgba(15, 23, 42, 0.03) !important;
+    }
+
+    /* TEKS MENU BERWARNA GRADIEN COMPRESSPRO */
+    [data-testid="stSidebar"] .stButton > button p,
+    [data-testid="stSidebar"] .stButton > button span,
+    [data-testid="stSidebar"] .stButton > button div {
+        font-weight: 900 !important;
+        letter-spacing: -0.3px !important;
+        background: linear-gradient(125deg, #0284C7 0%, #6366F1 45%, #EC4899 90%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3)) !important;
+    }
+
+    /* KETIKA TOMBOL MENU AKTIF (DIPILIH) */
+    [data-testid="stSidebar"] .stButton > button[kind="primary"],
+    [data-testid="stSidebar"] .stButton > button[data-testid="baseButton-primary"] {
+        background: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, rgba(99, 102, 241, 0.18) 50%, rgba(236, 72, 153, 0.15) 100%) !important;
+        border: 1.8px solid #6366F1 !important;
+        box-shadow: 0 4px 18px rgba(99, 102, 241, 0.35), inset 0 0 12px rgba(236, 72, 153, 0.1) !important;
+        transform: translateX(4px) !important;
+    }
+
+    /* KETIKA TOMBOL MENU DI-HOVER */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        transform: translateX(4px) scale(1.02) !important;
+        border-color: #EC4899 !important;
+        box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3) !important;
+    }
+
+    /* ================= 5. JUDUL UTAMA BERSENI ================= */
     .brand-hero {
         position: relative;
         text-align: center;
@@ -214,7 +273,7 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 5. METRIK TOTAL */
+    /* 6. KARTU METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -261,7 +320,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* 6. TOMBOL DOWNLOAD BESAR (ZIP) */
+    /* 7. TOMBOL DOWNLOAD BESAR (ZIP) */
     [data-testid="stDownloadButton"] {
         margin-top: 8px;
         margin-bottom: 12px;
@@ -287,7 +346,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* 7. TOMBOL UNDUH SATUAN DI DALAM EXPANDER */
+    /* 8. TOMBOL UNDUH SATUAN DI DALAM EXPANDER */
     div[data-testid="stExpander"] [data-testid="stDownloadButton"] > button {
         background: linear-gradient(135deg, #2563EB, #4F46E5) !important;
         color: #FFFFFF !important;
@@ -304,7 +363,7 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.45) !important;
     }
 
-    /* ================= 8. SPINNER BOLA MELAYANG DI TENGAH (CYBER HUD) ================= */
+    /* ================= 9. SPINNER BOLA MELAYANG DI TENGAH ================= */
     .hud-overlay {
         position: fixed !important;
         top: 0 !important;
@@ -416,7 +475,6 @@ def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
     ]
     
     for pct, msg, delay in stages:
-        # String 1 baris tanpa indentasi agar Markdown tidak mencetaknya sebagai kode
         clean_html = f'<div class="hud-overlay"><div class="hud-card"><div class="hud-spinner-wrap"><div class="hud-spinner-ring"></div><span class="hud-pct-text">{pct}%</span></div><div class="hud-msg-text">{msg}</div></div></div>'
         hud_slot.markdown(clean_html, unsafe_allow_html=True)
         time.sleep(delay)
@@ -457,10 +515,12 @@ if st.session_state.close_sidebar_trigger:
     """, height=0, width=0)
 
 
-# ================= MENU SIDEBAR =================
+# ================= MENU SIDEBAR (DESAIN SENADA COMPRESSPRO) =================
 with st.sidebar:
-    st.markdown("<h2 style='font-weight:800; color:#0F172A; margin-top:0;'>⚡ Menu Pilihan</h2>", unsafe_allow_html=True)
-    st.write("")
+    st.markdown("""
+        <div class="sidebar-brand-pill">⚡ PILIH NAVIGASI</div>
+        <div class="sidebar-brand-title">Menu Pilihan</div>
+    """, unsafe_allow_html=True)
     
     daftar_menu = [
         ("🖼️ Kompres Gambar", "btn_nav_img"),
@@ -480,7 +540,7 @@ with st.sidebar:
 # ================= HEADER UTAMA =================
 st.markdown(f"""
 <div class="brand-hero">
-    <div class="brand-pill">⚡ NEXT-GEN COMPRESSION</div><br>
+    <div class="brand-pill">⚡ K-ONE SYSTEMS COMPRESSION</div><br>
     <div class="brand-title">Compress<span class="pro-badge">PRO</span></div>
     <div class="brand-divider"></div>
     <div class="brand-sub">
@@ -718,7 +778,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
-        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -730,7 +789,6 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading(kategori="gambar", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -818,9 +876,8 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_pdf = zip_buf_pdf.getvalue()
 
-        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip_pdf = st.download_button(
-            label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes_pdf))})",
+            label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes_pdf,
             file_name="CompressPro_PDF_Bundle.zip",
             mime="application/zip",
@@ -830,7 +887,6 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading(kategori="pdf", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -917,7 +973,6 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_off = zip_buf_off.getvalue()
 
-        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip_off = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_off)} DOKUMEN) - ZIP ({format_size(len(zip_bytes_off))})",
             data=zip_bytes_off,
@@ -929,7 +984,6 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading(kategori="office", is_bundle=True)
 
-        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
