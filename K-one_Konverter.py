@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ================= CUSTOM CSS (RESPONSIF, FLOATING LOADER READY) =================
+# ================= CUSTOM CSS (SPINNER BOLA MELAYANG & TEMA) =================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -30,7 +30,6 @@ st.markdown("""
         border: none !important;
     }
 
-    /* Sembunyikan tombol bawaan Streamlit yang tidak diperlukan */
     [data-testid="stToolbarActions"],
     [data-testid="stStatusWidget"],
     .stDeployButton,
@@ -40,7 +39,7 @@ st.markdown("""
         visibility: hidden !important;
     }
 
-    /* 2. TOMBOL HAMBURGER ASLI (>>) BESAR & SELALU AKTIF */
+    /* 2. TOMBOL HAMBURGER ASLI (>>) SELALU AKTIF */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         display: flex !important;
@@ -49,7 +48,7 @@ st.markdown("""
         position: fixed !important;
         top: 14px !important;
         left: 14px !important;
-        z-index: 9999999 !important;
+        z-index: 999999 !important;
     }
 
     [data-testid="stSidebarCollapsedControl"] button,
@@ -66,13 +65,12 @@ st.markdown("""
         align-items: center !important;
         justify-content: center !important;
         cursor: pointer !important;
-        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        transition: transform 0.2s ease !important;
     }
 
     [data-testid="stSidebarCollapsedControl"] button:hover,
     [data-testid="collapsedControl"] button:hover {
         transform: scale(1.06) !important;
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6) !important;
     }
 
     [data-testid="stSidebarCollapsedControl"] svg,
@@ -105,7 +103,7 @@ st.markdown("""
         justify-content: flex-start !important;
     }
 
-    /* 4. DESAIN JUDUL BERSENI */
+    /* 4. JUDUL BERSENI */
     .brand-hero {
         position: relative;
         text-align: center;
@@ -216,7 +214,7 @@ st.markdown("""
         100% { transform: scale(0.9); opacity: 0.7; }
     }
 
-    /* 5. KARTU METRIK TOTAL */
+    /* 5. METRIK TOTAL */
     .metrics-container {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -305,12 +303,92 @@ st.markdown("""
         transform: translateY(-1px) !important;
         box-shadow: 0 4px 12px rgba(79, 70, 229, 0.45) !important;
     }
+
+    /* ================= 8. SPINNER BOLA MELAYANG DI TENGAH (CYBER HUD) ================= */
+    .hud-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(15, 23, 42, 0.7) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 99999999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        pointer-events: all !important;
+    }
+
+    .hud-card {
+        background: rgba(30, 41, 59, 0.95) !important;
+        border: 1.5px solid rgba(99, 102, 241, 0.45) !important;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(99, 102, 241, 0.35) !important;
+        border-radius: 24px !important;
+        padding: 26px 36px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 230px !important;
+        animation: hudPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    @keyframes hudPop {
+        0% { transform: scale(0.85); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .hud-spinner-wrap {
+        position: relative !important;
+        width: 86px !important;
+        height: 86px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-bottom: 14px !important;
+    }
+
+    .hud-spinner-ring {
+        position: absolute !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 50% !important;
+        border: 5px solid rgba(255, 255, 255, 0.08) !important;
+        border-top: 5px solid #0284C7 !important;
+        border-right: 5px solid #6366F1 !important;
+        border-bottom: 5px solid #EC4899 !important;
+        box-shadow: 0 0 16px rgba(99, 102, 241, 0.4) !important;
+        animation: hudSpin 0.9s linear infinite !important;
+    }
+
+    @keyframes hudSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .hud-pct-text {
+        font-size: 1.18rem !important;
+        font-weight: 900 !important;
+        background: linear-gradient(135deg, #38BDF8, #EC4899) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        z-index: 2 !important;
+    }
+
+    .hud-msg-text {
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        color: #F8FAFC !important;
+        text-align: center !important;
+        letter-spacing: 0.3px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ================= WADAH UTAMA FLOATING HUD (GLOBAL ROOT SLOT) =================
-# Diletakkan di root agar tidak pernah terpotong/terjebak di dalam kolom atau expander
+# ================= WADAH UTAMA SPINNER (GLOBAL ROOT SLOT) =================
 hud_slot = st.empty()
 
 
@@ -324,56 +402,23 @@ def format_size(size_in_bytes):
     return f"{kb:.2f} KB"
 
 
-# ================= VISUAL LOADING MELAYANG (FLOATING HUD) =================
+# ================= VISUAL SPINNER BOLA MUTER + PERSEN DI TENGAH =================
 def show_download_loading(kategori="gambar", is_bundle=False, file_name=None):
-    """Menampilkan progress bar melayang di atas layar dari level root selama ~2.5 detik"""
+    """Menampilkan bola berputar di tengah layar dengan persen dan jeda 2.4 detik"""
     nama_label = "Bundle ZIP" if is_bundle else (f"'{file_name}'" if file_name else "Berkas")
     
     stages = [
-        (18, f"⚡ Menginisialisasi transfer {nama_label}...", 0.4),
-        (42, "📦 Memadatkan & mengemas data berkas...", 0.5),
-        (72, "⚡ Mengoptimalkan paket kompresi...", 0.6),
-        (92, "🚀 Menyinkronkan unduhan ke perangkat...", 0.5),
-        (100, "✅ Selesai! Berkas siap diunduh...", 0.45)
+        (15, f"Menyiapkan {nama_label}...", 0.4),
+        (45, "Mengemas & Memadatkan...", 0.5),
+        (75, "Mengoptimalkan File...", 0.6),
+        (95, "Mengirim ke Perangkat...", 0.5),
+        (100, "Selesai!", 0.4)
     ]
     
     for pct, msg, delay in stages:
-        floating_html = f"""
-        <div style="
-            position: fixed;
-            top: 22px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 99999999;
-            width: min(90vw, 440px);
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1.5px solid rgba(99, 102, 241, 0.55);
-            border-radius: 18px;
-            padding: 14px 20px;
-            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(99, 102, 241, 0.35);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            pointer-events: none;
-        ">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-block; width: 10px; height: 10px; background: #10B981; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></span>
-                    <span style="color: #F8FAFC; font-weight: 800; font-size: 0.88rem; letter-spacing: 0.5px;">MEMPROSES UNDUHAN</span>
-                </div>
-                <span style="color: #EC4899; font-weight: 800; font-size: 0.9rem;">{pct}%</span>
-            </div>
-            
-            <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 99px; overflow: hidden; margin-bottom: 9px;">
-                <div style="width: {pct}%; height: 100%; background: linear-gradient(90deg, #0284C7 0%, #6366F1 50%, #EC4899 100%); border-radius: 99px; transition: width 0.35s ease;"></div>
-            </div>
-            
-            <div style="color: #94A3B8; font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {msg}
-            </div>
-        </div>
-        """
-        hud_slot.markdown(floating_html, unsafe_allow_html=True)
+        # String 1 baris tanpa indentasi agar Markdown tidak mencetaknya sebagai kode
+        clean_html = f'<div class="hud-overlay"><div class="hud-card"><div class="hud-spinner-wrap"><div class="hud-spinner-ring"></div><span class="hud-pct-text">{pct}%</span></div><div class="hud-msg-text">{msg}</div></div></div>'
+        hud_slot.markdown(clean_html, unsafe_allow_html=True)
         time.sleep(delay)
         
     hud_slot.empty()
@@ -673,7 +718,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes = zip_buf.getvalue()
 
-        # Tombol Download ZIP (Memanggil hud_slot global)
+        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_img)} GAMBAR) - ZIP ({format_size(len(zip_bytes))})",
             data=zip_bytes,
@@ -685,7 +730,7 @@ if st.session_state.active_menu == "🖼️ Kompres Gambar":
         if btn_zip:
             show_download_loading(kategori="gambar", is_bundle=True)
 
-        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
+        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Gambar", expanded=True):
             for i, item in enumerate(list_hasil):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -773,7 +818,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_pdf = zip_buf_pdf.getvalue()
 
-        # Tombol Download ZIP (Memanggil hud_slot global)
+        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip_pdf = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_pdf)} PDF) - ZIP ({format_size(len(zip_bytes_pdf))})",
             data=zip_bytes_pdf,
@@ -785,7 +830,7 @@ elif st.session_state.active_menu == "📄 Kompres Dokumen PDF":
         if btn_zip_pdf:
             show_download_loading(kategori="pdf", is_bundle=True)
 
-        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
+        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap PDF", expanded=True):
             for i, item in enumerate(list_hasil_pdf):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
@@ -820,7 +865,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
             min_value=10, 
             max_value=90, 
             value=60, 
-            help="Geser ke kiri untuk memperkecil ukuran media dan struktur XML dokumen secara maksimal."
+            help="Semakin kecil persentase, kompresi media & XML dokumen akan semakin padat."
         )
         
         total_awal_off = 0
@@ -872,7 +917,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
                 z.writestr(item["out_name"], item["bytes"])
         zip_bytes_off = zip_buf_off.getvalue()
 
-        # Tombol Download ZIP (Memanggil hud_slot global)
+        # Tombol Download ZIP (Dengan Bola Muter & Persen)
         btn_zip_off = st.download_button(
             label=f"⬇️ DOWNLOAD SEMUA ({len(files_off)} DOKUMEN) - ZIP ({format_size(len(zip_bytes_off))})",
             data=zip_bytes_off,
@@ -884,7 +929,7 @@ elif st.session_state.active_menu == "📊 Kompres Dokumen Office":
         if btn_zip_off:
             show_download_loading(kategori="office", is_bundle=True)
 
-        # Rincian Unduh Satuan (Juga Memanggil hud_slot global)
+        # Rincian Unduh Satuan (Dengan Bola Muter & Persen)
         with st.expander("📋 Rincian & Unduh Satuan Tiap Dokumen", expanded=True):
             for i, item in enumerate(list_hasil_off):
                 item_hemat = ((item["awal"] - item["akhir"]) / item["awal"]) * 100 if item["awal"] > item["akhir"] else 0.0
